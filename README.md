@@ -19,5 +19,6 @@ Do file 3_Merging cross-sectional and longitudinal
       -> Generates summary outcome variables for the regression analyses (any positive response between months 1-6, maximum titre between 1-6)  
       -> Estimates half-lives for neutralisation titres  
       -> Regressions with co-infections  
-      -> Prepares correlations dataset by keeping only cross-sectional or month 1 for the longitudinal  
-      -> Output = 'Both_datsets_long.dta'; 'correlations_dataset.dta'; regression outputs in excel saved as 'reg_long_results.xlsx'  
+      -> Prepares correlations dataset by keeping only cross-sectional or month 1 for the longitudinal 
+      -> Prepares infections dataset by keeping only visits at month 1, without age outliers or missing infection status data and reshaping as long according to assay (PV1/3; stool/serum)
+      -> Output = 'Both_datsets_long.dta'; 'correlations_dataset.dta'; 'infections_dataset.dta', regression outputs in excel saved as 'reg_long_results.xlsx'  
