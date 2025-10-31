@@ -320,3 +320,21 @@ spearman logPV3_stool logPV3_serum, exact //rho = 0.51, p<0.001
 
 spearman logPV1_stool logPV3_stool 
 spearman logPV1_serum logPV3_serum
+
+///////////////////////////////////////////////////////////////
+*Creating a dataset for the any_infections 
+use "Both_datasets_long", clear
+keep if visit==2 & any_infection!=. & flag_ageoutlier==0
+
+rename logPV1_stool logPV_1
+rename logPV3_stool logPV_2
+rename logPV1_serum logPV_3
+rename logPV3_serum logPV_4
+
+reshape long logPV_, i(pid) j(assay)
+sort pid assay
+label define assay 1 "PV1 stool" 2"PV3 stool" 3"PV1 serum" 4"PV3 serum"
+label values assay assay
+list pid visit sampletype assay logPV_ in 1/20, sepby(pid)
+
+save "infections_dataset", replace
