@@ -210,25 +210,39 @@ s2nbox <- ggplot (longitudinal, aes(x=factor(visit), y=logPV2_serum))+
   theme(plot.caption = element_text(hjust = 0.5, size = 14),legend.position = "none", axis.text.x = element_text(size = 18, angle=45, hjust=0.75), axis.text.y = element_text(size = 14), axis.title = element_markdown(size = 18), axis.title.x = element_blank())
 ggsave("Figures/Box_Serum_PV2_neut.png", width = 6, height = 6, dpi = 300)
 s2nbox
-# 
-# #PV1 amongst strata with high pv1 baseline in longitudinal sample
-# b<- ggplot (highpv1baseline, aes(x=factor(visit), y=logPV1_serum))+
-#   geom_jitter(alpha=0.6, position=position_jitter(width = 0.2, height = 0), size=2)+
-#   geom_boxplot(fatten=3, outlier.shape = NA, color="black", fill=NA,  alpha=0.3)+
-#   mytheme2+
-#   labs( x = "visit", y = expression("PV1 neutralization titer " [2]))+
-#   scale_x_discrete(labels= c("Baseline", "One month", "3 months", "6 months"))+
-#   ylim (1, 10)+
-#   theme(plot.caption = element_text(hjust = 0.5, size = 18), legend.text = element_text(size=16), legend.title = element_text(size=16), axis.text = element_text(size = 16), axis.title = element_text(size = 16), axis.title.x = element_blank())
-# b
-# 
-# #PV1 amongst strata with low pv1 baseline in longitudinal sample
-# c<- ggplot (lowpv1baseline, aes(x=factor(visit), y=logPV1_serum))+
-#   geom_jitter(alpha=0.6, position=position_jitter(width = 0.2, height = 0), size=2)+
-#   geom_boxplot(fatten=3, outlier.shape = NA, color="black", fill=NA,  alpha=0.3)+
-#   mytheme2+
-#   labs( x = "visit", y = expression("PV1 neutralization titer " [2]))+
-#   scale_x_discrete(labels= c("Baseline", "One month", "3 months", "6 months"))+
-#   ylim (1, 10)+
-#   theme(plot.caption = element_text(hjust = 0.5, size = 18), legend.text = element_text(size=16), legend.title = element_text(size=16), axis.text = element_text(size = 16), axis.title = element_text(size = 16), axis.title.x = element_blank())
-# c
+
+###################################################################################################################################
+#Infections analysis at one month
+infection <- read_dta("infections_dataset.dta")
+infection$assay <- factor(infection$assay, levels = c("1", "2", "3", "4"),
+                             labels = c("PV1 stool", "PV3 stool", "PV1 serum", "PV3 serum"))
+
+
+s3nbox <- ggplot(infection, aes(x = factor(assay), y = logPV_)) +
+  geom_hline(yintercept = 3, linetype = "dashed") +
+  geom_jitter(aes(color = factor(any_infection)),
+              alpha = 0.6,
+              position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.6),
+              size = 2) +
+  geom_boxplot(aes(group = interaction(any_infection, assay)),
+               position = position_dodge(width = 0.6),
+               fatten = 2,
+               width = 0.4, 
+               outlier.shape = NA,
+               color = "black",
+               fill = NA,
+               alpha = 0.3) +
+  scale_color_manual(name = "Infections status", values = c("0" = "#00798C", "1" = "#D1495B"),
+                       labels = c("0" = "None", "1" = "At least 1")) +
+  mytheme2 +
+  scale_y_continuous(breaks = c(0,2,4,6,8,10,12,14), limits=c(0,14)) +
+  labs(x = "Sample", y = "Log<sub>2</sub> neutralization titer") +
+  scale_x_discrete(labels = c("PV1 in stool", "PV3 in stool", "PV1 in serum", "PV3 in serum")) +
+  theme(plot.caption = element_text(hjust = 0.5, size = 14),
+        legend.position = "right",
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 14),
+        axis.title = element_markdown(size = 18),
+        axis.title.x = element_blank())
+s3nbox
+ggsave("Figures/Box_infections_neut.png", width = 6, height = 6, dpi = 300)
