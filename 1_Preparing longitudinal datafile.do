@@ -241,6 +241,11 @@ drop Enteroinvasive_ecoli_EIEC Shigella_toxin_STEC Campylobacter Salmonella Clos
 
 tab1 coinfect_parasite coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus coinfect_giardia
 
+
+gen sampletype=2
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+
 save "Baseline_data_preppedformerge", replace
 use "Baseline_data_preppedformerge", clear
 /////////////////////////////////////////////////////////
@@ -313,6 +318,133 @@ list in 1
 
 save "merged_dataset_long", replace
 use "merged_dataset_long", clear
+
+keep pid visit 
+save "cross_sectional_lookup", replace
+
+//////////////////////////////////////////////
+*Merging in Ig data
+use "stool_IgA_withlabids_studyvisitmonths.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+replace pid = "POL 282" if pid=="POL 282 "
+tab study_visit_month
+gen sampletype = 2
+replace sampletype = 1 if study_visit_month=="aim2"
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+tab sampletype
+keep if sampletype==2
+gen visit = 1
+replace visit = 2 if study_visit_month=="1-month"
+replace visit = 3 if study_visit_month=="3-months"
+replace visit = 4 if study_visit_month=="6-month" 
+drop study_visit_month
+duplicates tag pid visit, gen(duplicated_flag)
+sort pid visit
+list if duplicated>0, sepby(pid)
+drop if duplicated==3
+
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	bysort pid visit: egen PV`x'_IgA_stool = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgA_stool = ln(PV`x'_IgA_stool)/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid visit, force
+list in 1/10, sepby(pid)
+save "longitudinal_stool_IgA", replace
+
+use "serum_IgG_1000f_with_labids_studyvisits.dta", clear //Using 1000f dilution rather than 10,000f due to better sensivity (less saturation at the top)
+replace pid = "POL 482" if pid=="POL. 482"
+tab study_visit_month
+gen sampletype = 2
+replace sampletype = 1 if study_visit_month=="Aim2"
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+tab sampletype
+keep if sampletype==2
+gen visit = 1
+replace visit = 2 if study_visit_month=="1-month"
+replace visit = 3 if study_visit_month=="3-month "
+replace visit = 4 if study_visit_month=="6-months" 
+tab study_visit_month visit, m
+drop study_visit_month
+duplicates tag pid visit, gen(duplicated_flag)
+sort pid visit
+list if duplicated>0, sepby(pid)
+
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	bysort pid visit: egen PV`x'_IgG_serum  = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgG_serum = ln(PV`x'_IgG_serum )/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid visit, force
+list in 1/10, sepby(pid)
+replace pid = "POL 482" if pid=="POL. 482"
+
+save "longitudinal_serum_IgG", replace
+
+
+use "serum_IgA_with_labids_studyvisits.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+tab study_visit_month
+gen sampletype = 2
+replace sampletype = 1 if study_visit_month=="Aim2"
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+tab sampletype
+keep if sampletype==2
+gen visit = 1
+replace visit = 2 if study_visit_month=="1-month"
+replace visit = 3 if study_visit_month=="3-months"
+replace visit = 4 if study_visit_month=="6-months" 
+tab study_visit_month visit, m
+drop study_visit_month
+duplicates tag pid visit, gen(duplicated_flag)
+sort pid visit
+list if duplicated>0, sepby(pid)
+
+foreach x in 1 2 3{
+	replace IPV`x'="." if IPV`x'=="NaN"
+	destring IPV`x', replace
+	bysort pid visit: egen PV`x'_IgA_serum  = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgA_serum = ln(PV`x'_IgA_serum)/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid visit, force
+list in 1/10, sepby(pid)
+
+save "longitudinal_serum_IgA", replace
+
+use "longitudinal_serum_IgA", clear
+
+merge 1:1 pid visit using "longitudinal_serum_IgG.dta"
+list pid sampletype visit duplicate logPV1* if _merge!=3
+drop _merge
+
+merge 1:1 pid visit using "longitudinal_stool_IgA.dta"
+sort pid visit
+list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
+drop _merge
+
+save "longitudinal_Ig_data", replace
+
+use "merged_dataset_long", clear
+merge 1:1 pid visit using "longitudinal_Ig_data"
+list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
+drop _merge
+
+save "merged_dataset_long", replace
 
 //////////////////////////////////////////////////////////
 **# Data cleaning for tables 
@@ -402,7 +534,7 @@ replace follow_up_days = date - bopv14w_date
 list bopv14w_date date follow_up_days age_opv14_weeks in 1/10
 histogram follow_up_days, bin(200)
 
-*Flagging age outliers - will remove from future analysis
+*Flagging age outliers
 tab age_opv14_weeks if visit==1
 hist ageweek if visit==1, bin(100)
 gen flag_ageoutlier = 0
@@ -551,10 +683,6 @@ label define watersource_binl 0 "<15 minutes" 1 ">=15 minutes, Upper quartile"
 label values watersource_bin watersource_binl
 tab watersource_bin
 
-gen sampletype = 2
-label define sampletype 1 "cross-sectional" 2 "longitudinal"
-label values sampletype sampletype
-
 gen summ_visit_month = .
 replace summ_visit_month = 0 if visit==1
 replace summ_visit_month = 1 if visit==2
@@ -569,7 +697,7 @@ use "merged_dataset_long", clear
 //////////////////////////////////
 *Table 1
 use "merged_dataset_long", clear
-keep if visit==1 & flag_ageoutlier==0
+keep if visit==1
 tab1 femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus
 summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10, d
 summ caa_concentration if coinfect_caa==1, d
@@ -578,7 +706,7 @@ summ caa_concentration if coinfect_caa==1, d
 **# Supplementary table 1
 *Supplementarty table: Compare demographics for those with complete data vs full-sample
 use "merged_dataset_long", clear
-keep if no_obs==4 & visit==1 & flag_ageoutlier==0
+keep if no_obs==4 & visit==1
 tab1  femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus
 summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10, d
 summ caa_concentration if coinfect_caa==1, d
@@ -604,7 +732,7 @@ forvalues x=1/32 {
 	local x2: word `x' of `pv'
 	local x3: word `x' of `highlowbaseline'
 	local x4: word `x' of `samplet'
-summarize logPV`x2'_`x4' if flag_ageoutlier==0 & high_neut_baseline_pv`x2'==`x3' & visit==`x1', d
+summarize logPV`x2'_`x4' if high_neut_baseline_pv`x2'==`x3' & visit==`x1', d
 	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p25 = r(p25)
 	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_median = r(p50)
 	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p75 = r(p75)
@@ -628,7 +756,34 @@ tab pv`x2'_`x4'_positive if flag_ageoutlier==0 & high_neut_baseline_pv`x2'==`x3'
 	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p75 = r(p75)
 } */
 
-bysort visit: tab pv1_stool_positive if flag_ageoutlier==0 & high_neut_baseline_pv1==0
+tab1 high_neut_baseline_pv1 high_neut_baseline_pv3 if visit==1
+bysort visit: tab pv1_stool_positive if high_neut_baseline_pv1==1
+bysort visit: tab pv1_stool_positive if high_neut_baseline_pv1==0
+bysort visit: tab pv3_stool_positive if high_neut_baseline_pv3==1
+bysort visit: tab pv3_stool_positive if high_neut_baseline_pv3==0
+
+bysort visit: summ logPV1_stool if high_neut_baseline_pv1==1 
+bysort visit: summ logPV1_serum if high_neut_baseline_pv1==1 
+bysort visit: summ logPV1_stool if high_neut_baseline_pv1==0
+bysort visit: summ logPV1_serum if high_neut_baseline_pv1==0 
+bysort visit: summ logPV3_stool if high_neut_baseline_pv3==1 
+bysort visit: summ logPV3_serum if high_neut_baseline_pv3==1 
+bysort visit: summ logPV3_stool if high_neut_baseline_pv3==0 
+bysort visit: summ logPV3_serum if high_neut_baseline_pv3==0 
+
+
+bysort visit: summ logPV1_IgA_stool if high_neut_baseline_pv1==1 
+bysort visit: summ logPV1_IgA_stool if high_neut_baseline_pv1==0 
+bysort visit: summ logPV3_IgA_stool if high_neut_baseline_pv3==1  
+bysort visit: summ logPV3_IgA_stool if high_neut_baseline_pv3==0
+bysort visit: summ logPV1_IgA_serum if high_neut_baseline_pv1==1 
+bysort visit: summ logPV1_IgA_serum if high_neut_baseline_pv1==0 
+bysort visit: summ logPV3_IgA_serum if high_neut_baseline_pv3==1
+bysort visit: summ logPV3_IgA_serum if high_neut_baseline_pv3==0
+bysort visit: summ logPV1_IgG_serum if high_neut_baseline_pv1==1 
+bysort visit: summ logPV1_IgG_serum if high_neut_baseline_pv1==0 
+bysort visit: summ logPV3_IgG_serum if high_neut_baseline_pv3==1
+bysort visit: summ logPV3_IgG_serum if high_neut_baseline_pv3==0 
 
 
 ////////////////////////////////////////////////////////////
