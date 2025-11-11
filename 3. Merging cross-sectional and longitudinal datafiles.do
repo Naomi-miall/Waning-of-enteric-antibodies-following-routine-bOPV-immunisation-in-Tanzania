@@ -69,94 +69,106 @@ save "Both_datasets_long", replace
 use "Both_datasets_long", clear
 
 ///////////////////////////////////////////////////////////////
-tab pv1_stool_positive visit if sampletype==1 & flag_ageoutlier==0, col
-bysort visit: summ logPV1_stool if sampletype==1 & flag_ageoutlier==0, d
+tab pv1_stool_positive visit if sampletype==1, col
+bysort visit: summ logPV1_stool if sampletype==1, d
 
-tab pv3_stool_positive visit if sampletype==1 & flag_ageoutlier==0, col
-bysort visit: summ logPV3_stool if sampletype==1 & flag_ageoutlier==0, d
-
-
-bysort visit: summ logPV1_serum if sampletype==1 & flag_ageoutlier==0, d
-bysort visit: summ logPV3_serum if sampletype==1 & flag_ageoutlier==0, d
+tab pv3_stool_positive visit if sampletype==1, col
+bysort visit: summ logPV3_stool if sampletype==1, d
 
 
-tab pv3_stool_responses visit if flag_ageoutlier==0 & sampletype==1, col
-tab pv3_stool_responses visit if flag_ageoutlier==0 & sampletype==2, col
-tab pv3_stool_responses visit if flag_ageoutlier==0, col
+bysort visit: summ logPV1_serum if sampletype==1, d
+bysort visit: summ logPV3_serum if sampletype==1, d
 
-tab pv1_stool_responses visit if flag_ageoutlier==0 & sampletype==1, col
-tab pv1_stool_responses visit if flag_ageoutlier==0 & sampletype==2, col
+
+tab pv3_stool_responses visit if sampletype==1, col
+tab pv3_stool_responses visit if sampletype==2, col
+tab pv3_stool_responses visit, col
+
+tab pv1_stool_responses visit if sampletype==1, col
+tab pv1_stool_responses visit if sampletype==2, col
 tab pv1_stool_responses visit if flag_ageoutlier==0, col
 
+bysort visit: summ logPV1_IgA_stool if sampletype==1, d
+bysort visit: summ logPV3_IgA_stool if sampletype==1, d
+bysort visit: summ logPV1_IgA_serum if sampletype==1, d
+bysort visit: summ logPV3_IgA_serum if sampletype==1, d
+bysort visit: summ logPV1_IgG_serum if sampletype==1, d
+bysort visit: summ logPV3_IgG_serum if sampletype==1, d
+
+*Supplementary table 3
+use "Both_datasets_long", clear
+ keep if sampletype == 1
+
+postfile handle str30 variable str20 visit_group N median ci_low ci_high using results_temp.dta, replace
+
+local vars logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum 
+local visit 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8
+forvalues x=1/42 {
+	local vars2: word `x' of `vars'
+	local visit2: word `x' of `visit'
+summarize `vars2' if visit==`visit2', detail
+post handle ("`vars2'") ("`visit2'") (r(N)) (r(p50)) (r(p25)) (r(p75))
+}
+postclose handle
+use results_temp.dta, clear
+export excel using "supplementarytab3.xlsx", sheet("Sheet 1") replace
+
+summarize logPV1_IgA_stool if visit==2, d
+local N = r(N)
+local p25 = r(p25)
+display `p25'
+
+
+use "Both_datasets_long", clear
 ///////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 *Regressions: Estimating half lives:
 
 *Linear regression for PV1 between 1 month and 6 months
-use "merged_dataset_long", clear
-keep if visit>1 & flag_ageoutlier==0
-mixed logPV1_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
-mixed logPV1_stool follow_up_days femalesex age_opv14_weeks || pid: //coefficient is -.0096988
-mixed logPV1_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days //coefficient is -.0096988
-summ logPV1_stool if visit ==2, d //median is 2.424242 so half value is 1.212121
-display 1.212121/.0096988 //half life = 125.0 days
+use "both_datasets_long", clear
+keep if sampletype==1 & visit<5 
+regress logPV1_stool follow_up_months femalesex age_opv14_weeks //-0.1638856 
+summ logPV1_stool if visit ==2, d //median is 1 - lowest possible already
 
-//Including the cross-sectional sample also
-use "Both_datasets_long", clear
-keep if visit>1 & visit<5 & flag_ageoutlier==0
-mixed logPV1_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
-mixed logPV1_stool follow_up_days femalesex age_opv14_weeks || pid:
-mixed logPV1_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days //coefficient is  -.0085907
-summ logPV1_stool if visit ==2, d //median is 1.535354 so half value is 0.767677
-display 0.767677/.0085907 //half life = 89.4 days
-
-use "merged_dataset_long", clear
-keep if visit>1 & flag_ageoutlier==0
-mixed logPV3_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
-mixed logPV3_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days
-summ logPV3_stool if visit ==2, d
-display ( 2.820707)/.0196951 
-
-//Including the cross-sectional sample also
-use "Both_datasets_long", clear
-keep if visit>1 & visit<5 & flag_ageoutlier==0
-mixed logPV3_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
-mixed logPV3_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days
-summ logPV3_stool if visit ==2, d 
-display 2.608586/.0179969 //half life = 145
+use "both_datasets_long", clear
+keep if sampletype==1 & visit<5 
+regress logPV3_stool follow_up_months femalesex age_opv14_weeks //-.4120233
+regress logPV3_stool follow_up_days femalesex age_opv14_weeks //.0137341
+summ logPV3_stool if visit ==2, d //median is  3.555556  
+display  (3.555556/2)/.0137341
 
 
 //High baseline
 use "merged_dataset_long", clear
-keep if visit>1 & flag_ageoutlier==0 & high_neut_baseline_pv1==1
+keep if visit>1 & high_neut_baseline_pv1==1
 mixed logPV1_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
 mixed logPV1_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days
 summ logPV1_stool if visit ==2, d
 display (3.025253/2)/.0110366   
 
 use "merged_dataset_long", clear
-keep if visit>1 & flag_ageoutlier==0 & high_neut_baseline_pv3==1
+keep if visit>1 & high_neut_baseline_pv3==1
 mixed logPV3_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
 mixed logPV3_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days
 summ logPV3_stool if visit ==2, d
-display ( 5.888889/2)/.0216188
+display ( 5.959596 /2)/.0218261
 
 
 //Low baseline 
 use "merged_dataset_long", clear
-keep if visit>1 & flag_ageoutlier==0 & high_neut_baseline_pv1==0
+keep if visit>1 & high_neut_baseline_pv1==0
 mixed logPV1_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
 mixed logPV1_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days
 summ logPV1_stool if visit ==2, d
-display (1.606061/2)/.0091918
+display (2.212121/2)/.0093252 
 
 
 use "merged_dataset_long", clear
-keep if visit>1 & flag_ageoutlier==0 & high_neut_baseline_pv3==0
+keep if visit>1 & high_neut_baseline_pv3==0
 mixed logPV3_stool follow_up_months femalesex age_opv14_weeks || pid: follow_up_months
 mixed logPV3_stool follow_up_days femalesex age_opv14_weeks || pid: follow_up_days
 summ logPV3_stool if visit ==2, d
-display (3.414141/2)/.0146626 
+display (2.777778/2)/.013512
 
 ////////////////////////////////////////////////////////////////////
 /*Regressions with covariates:
@@ -171,7 +183,7 @@ use "Both_datasets_long", clear
 sort pid visit
 list pid sampletype visit pv1_stool logPV1_stool pv1_stool_positive pv1_stool_responses pv1_stool_responses_exclbl in 1/50, sepby(pid)
 
-keep if (sampletype==2 & visit==1 & flag_ageoutlier==0) | (sampletype==1 & visit<5 & flag_ageoutlier==0)
+keep if (sampletype==2 & visit==1) | (sampletype==1 & visit<5)
 
 logistic pv1_stool_responses_exclbl bf_4months ageweek femalesex, or
 logistic pv1_stool_responses_exclbl watersource_bin ageweek femalesex, or
@@ -208,7 +220,7 @@ foreach x in bf_4months watersource_bin stunting any_infection coinfect* {
 
 //Longitudinal only - adjusting for baseline
 use "Both_datasets_long", clear
-keep if sampletype==2 & visit==1 & flag_ageoutlier==0
+keep if sampletype==2 & visit==1
 
 postfile handle str20 outcome coef pval ci_low ci_high using results_temp.dta, replace
 
@@ -245,7 +257,7 @@ replace detectable_pv3_prep=. if visit==1
 bysort pid: egen detectable_pv3 = max(detectable_pv3_prep)
 list pid visit sampletype detectable_pv3 pv3_stool_detectable in 1/50, sepby(pid)
 
-keep if (sampletype==2 & visit==1 & flag_ageoutlier==0) | (sampletype==1 & visit<5 & flag_ageoutlier==0)
+keep if (sampletype==2 & visit==1 ) | (sampletype==1 & visit<5)
 postfile handle2 str20 outcome str30 predictor coef pval ci_low ci_high using results_temp2.dta, replace
 foreach x in bf_4months watersource_bin stunting hiv_exposure any_infection coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus {
 	logistic detectable_pv1  `x' ageweek femalesex, or
@@ -282,7 +294,7 @@ sort pid visit
 list pid visit sampletype logPV1_stool max_logpv1_stool_exclbl logPV3_stool max_logpv3_stool_exclbl in 1/200 if sampletype==2, sepby(pid)
 list pid visit sampletype logPV1_stool max_logpv1_stool_exclbl logPV3_stool max_logpv3_stool_exclbl in 1/50, sepby(pid)
 
-keep if (sampletype==2 & visit==1 & flag_ageoutlier==0) | (sampletype==1 & visit<5 & flag_ageoutlier==0)
+keep if (sampletype==2 & visit==1) | (sampletype==1 & visit<5)
 postfile handle3 str20 outcome str30 predictor coef pval ci_low ci_high using results_temp3.dta, replace
 foreach x in bf_4months watersource_bin stunting hiv_exposure any_infection coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus {
 	regress max_logpv1_stool_exclbl  `x' ageweek femalesex
@@ -305,6 +317,34 @@ postclose handle3
 use results_temp3.dta, clear
 export excel using "reg_long_results4.xlsx", replace
 
+
+
+//Looking at neut titre at 1 month
+use "Both_datasets_long", clear
+sort pid visit
+keep if visit==2
+postfile handle4 str20 outcome str30 predictor coef pval ci_low ci_high using results_temp4.dta, replace
+foreach x in bf_4months watersource_bin stunting hiv_exposure any_infection coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus {
+	logistic pv1_stool_positive  `x' ageweek femalesex, or
+	local b = _b[`x']
+    local ci_l = _b[`x'] - 1.96 * _se[`x']
+    local ci_h = _b[`x'] + 1.96 * _se[`x']
+	testparm `x'
+	local p = r(p)
+	post handle4 ("pv1") ("`x'") (`b') (`ci_l') (`ci_h') (`p')
+	
+	logistic pv3_stool_positive  `x' ageweek femalesex, or
+	local b = _b[`x']
+    local ci_l = _b[`x'] - 1.96 * _se[`x']
+    local ci_h = _b[`x'] + 1.96 * _se[`x']
+	testparm `x'
+	local p = r(p)
+	post handle4 ("pv3") ("`x'") (`b') (`ci_l') (`ci_h') (`p')
+}
+postclose handle4
+use results_temp4.dta, clear
+export excel using "reg_long_results5.xlsx", replace
+
 ////////////////////////////////////////////////////////////
 *correlations
 use "Both_datasets_long", clear
@@ -313,18 +353,20 @@ keep if sampletype==1 | visit==2
 tab visit sampletype
 save "correlations_dataset", replace
 
-*STOOL AND SERUM:
+/**STOOL AND SERUM:
 //NEED TO THINK ABOUT MANAGING REPEAT OBS FOR LONG SAMPLE
 spearman logPV1_stool logPV1_serum, exact //rho = 0.33, p=0.001
 spearman logPV3_stool logPV3_serum, exact //rho = 0.51, p<0.001
 
 spearman logPV1_stool logPV3_stool 
 spearman logPV1_serum logPV3_serum
+*/
+
 
 ///////////////////////////////////////////////////////////////
 *Creating a dataset for the any_infections 
 use "Both_datasets_long", clear
-keep if visit==2 & any_infection!=. & flag_ageoutlier==0
+keep if visit==2 & any_infection!=.
 
 rename logPV1_stool logPV_1
 rename logPV3_stool logPV_2
@@ -338,3 +380,49 @@ label values assay assay
 list pid visit sampletype assay logPV_ in 1/20, sepby(pid)
 
 save "infections_dataset", replace
+
+
+
+///////////////////////////////////////////////////////////////
+*Creating a dataset for the box_plots 
+use "Both_datasets_long", clear
+keep pid visit sampletype logPV*
+
+rename logPV1_stool logPV1
+rename logPV3_stool logPV2
+rename logPV1_serum logPV3
+rename logPV3_serum logPV4
+rename logPV1_IgA_stool logPV5
+rename logPV3_IgA_stool logPV6
+rename logPV1_IgA_serum logPV7
+rename logPV3_IgA_serum logPV8
+rename logPV1_IgG_serum logPV9
+rename logPV3_IgG_serum logPV10
+
+reshape long logPV, i(pid visit) j(assay)
+sort pid assay
+label define assay 1 "PV1 stool neut" 2"PV3 stool neut" 3"PV1 serum neut" 4"PV3 serum neut" 5"PV1 stool IgA" 6"PV3 stool IgA" 7"PV1 serum IgA" 8"PV3 serum IgA" 9"PV1 serum IgG" 10"PV3 serum IgG"
+label values assay assay
+list pid visit sampletype assay logPV in 1/20, sepby(pid)
+
+save "box_plots", replace
+
+
+
+//Box plot file for the PV2 box plots
+use "Both_datasets_long", clear
+keep pid visit sampletype logPV*
+
+rename logPV2_stool logPV1
+rename logPV2_serum logPV2
+rename logPV2_IgA_stool logPV3
+rename logPV2_IgA_serum logPV4
+rename logPV2_IgG_serum logPV5
+
+reshape long logPV, i(pid visit) j(assay)
+sort pid assay
+label define assay 1 "PV2 stool neut" 2 "PV2 serum neut" 3 "PV2 stool IgA" 4 "PV2 serum IgA" 5 "PV2 serum IgG"
+label values assay assay
+list pid visit sampletype assay logPV in 1/20, sepby(pid)
+
+save "box_plots_PV2", replace
