@@ -390,11 +390,91 @@ tab watersource_bin
 save "cross-sectional_clean", replace
 use "cross-sectional_clean", clear
 
+//////////////////////////////////////////////
+*Merging in Ig data
+use "stool_IgA_withlabids_studyvisitmonths.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+replace pid = "POL 282" if pid=="POL 282 "
+keep if study_visit_month=="aim2"
+drop study_visit_month
+duplicates tag pid, gen(duplicated_flag)
+tab duplicated_flag
+
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	rename IPV`x' PV`x'_IgA_stool
+	gen logPV`x'_IgA_stool = ln(PV`x'_IgA_stool)/ln(10)
+}
+list in 1/10, sepby(pid)
+save "crosssectional_stool_IgA", replace
+
+use "serum_IgG_1000f_with_labids_studyvisits.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+keep if study_visit_month=="Aim2"
+drop study_visit_month
+duplicates tag pid, gen(duplicated_flag)
+list if duplicated>0, sepby(pid)
+
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	bysort pid: egen PV`x'_IgG_serum  = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgG_serum = ln(PV`x'_IgG_serum )/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid, force
+list in 1/10, sepby(pid)
+save "crosssectional_serum_IgG", replace
+
+use "serum_IgA_with_labids_studyvisits.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+keep if study_visit_month=="Aim2"
+drop study_visit_month
+duplicates tag pid, gen(duplicated_flag)
+list if duplicated>0, sepby(pid)
+
+foreach x in 1 2 3{
+	replace IPV`x'="." if IPV`x'=="NaN"
+	destring IPV`x', replace
+	bysort pid: egen PV`x'_IgA_serum  = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgA_serum = ln(PV`x'_IgA_serum)/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid, force
+list in 1/10, sepby(pid)
+save "crosssectional_serum_IgA", replace
+
+use "crosssectional_serum_IgA", clear
+
+merge 1:1 pid using "crosssectional_serum_IgG.dta"
+drop _merge
+
+merge 1:1 pid using "crosssectional_stool_IgA.dta"
+list pid duplicate logPV1* if _merge!=3, sepby(pid)
+drop _merge
+
+save "crosssectional_Ig_data", replace
+
+use "cross-sectional_clean", clear
+merge 1:1 pid using "crosssectional_Ig_data"
+list pid age_opv14_weeks duplicate logPV1* if _merge!=3, sepby(pid)
+drop if _merge==2 //No demographic data available
+drop _merge
+list pid duplicate logPV1* in 1/10
+
+save "cross-sectional_clean", replace
+
+//////////////////////////////////////////////////////////
+
 ///////////////////////////////////////////////////////////////
 //Table 1 
 use "cross-sectional_clean", clear
-keep if flag_ageoutlier==0
-tab1 femalesex complete_edu_adult delay_bopv0 bf_4months bw_bucket stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure HIV_status_of_child coinfect_parasite coinfect_caa
+tab1 femalesex complete_edu_adult delay_bopv0 bf_4months bw_bucket stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure HIV_status_of_child coinfect_parasite coinfect_caa ipv_bin rota_bin
 summ ageweek mother_age_at_birth minutes_towatersource age_opv14_weeks weeks_since_rota10, d
 summ caa_concentration if coinfect_caa==1, d
 tab parastie_identified_from_kato if coinfect_parasite!=., m 
