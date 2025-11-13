@@ -168,8 +168,8 @@ gen overweight = (_zwei>2) if !missing(_zwei)
 	
 save "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", replace
 //////////////////////////////////////////////////////////////////
-**# Data cleaning for coinfections
-	*Data cleaning: 
+**# Data cleaning
+
 	*Creating co-infection exposure groupings and dropping repeat variables
 use "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", clear
 
@@ -316,138 +316,126 @@ drop interview_date
 
 list in 1
 
+*Data cleaning of mucosal immunity data:
+**convert titers to log(2) scale. Higher titer indicates higher amount of antibodies. The oral poliovirus vaccine generates antibodies to PV1 and PV3 (types 1 and 3 poliovirus)
+**Using the equation log2(x) = ln(x)/ln(2)
+/*gen studyvisitmonth = studyvisit_month 
+label define visitlbl 0 "Enrollment" 1 "1 month" 3 "3 months" 6 "6 months", replace
+label values studyvisitmonth visitlbl */
+
+generate logPV1_stool = ln(pv1_stool)/ln(2)
+generate logPV2_stool = ln(pv2_stool)/ln(2)
+generate logPV3_stool = ln(pv3_stool)/ln(2)
+
+generate logPV1_serum = ln(pv1neuttiterserum)/ln(2)
+generate logPV2_serum = ln(pv2neuttiterserum)/ln(2)
+generate logPV3_serum = ln(pv3neuttiterserum)/ln(2)
+
+*Generating binary neuts data:
+foreach x in 1 2 3 {
+	gen pv`x'_stool_positive = 0
+	replace pv`x'_stool_positive = 1 if pv`x'_stool>=8
+	replace pv`x'_stool_positive = . if pv`x'_stool==.
+	bysort pv`x'_stool_positive: summ pv`x'_stool 
+	tab pv`x'_stool_positive if pv`x'_stool==., m
+	gen pv`x'_stool_detectable = 0
+	replace pv`x'_stool_detectable = 1 if pv`x'_stool>=4
+	replace pv`x'_stool_detectable = . if pv`x'_stool==.
+	bysort pv`x'_stool_detectable: summ pv`x'_stool
+}
+tab1 pv1_stool_positive pv2_stool_positive pv3_stool_positive pv1_stool_detectable pv2_stool_detectable pv3_stool_detectable
+tab pv1_stool_positive pv3_stool_positive, col
+
+*Make a strata variable - high or low at baseline for neuts
+foreach x in 1 2 3 {
+	gen high_neut_baseline_pv`x'_prep = pv`x'_stool_positive
+	replace high_neut_baseline_pv`x'_prep = . if visit>1
+	bysort pid: egen high_neut_baseline_pv`x' = max(high_neut_baseline_pv`x'_prep)
+	drop high_neut_baseline_pv`x'_prep
+	sort pid visit
+	list pid visit pv`x'_stool_positive high_neut_baseline_pv`x' in 1/20
+}
+
+
+//A few missing:
+list pid visit if pv1_stool==. //4 obs missing.
+
+//Tag if missing any stool neut data
+tab logPV1_stool if logPV3_stool == ., m
+tab logPV3_stool if logPV1_stool == ., m
+tab logPV2_stool if logPV3_stool == ., m //same particpants are missing on all
+bysort pid: egen flag_missing_stool_neuts = max(logPV1_stool), missing
+recode flag_missing_stool_neuts 0/10=0 .=1
+sort pid visit
+list visit flag_missing_stool_neuts logPV1_stool logPV3_stool logPV3_stool if flag_missing_stool_neuts==1, sepby(pid) //just missing on 1 obs, not all of them.
+
+
+/*same for serum:
+foreach x in 1 2 3 {
+	gen pv`x'_serum_positive = 0
+	replace pv`x'_serum_positive = 1 if pv`x'neuttiterserum>=8
+	replace pv`x'_serum_positive = . if pv`x'neuttiterserum==.
+	bysort pv`x'_serum_positive: summ pv`x'neuttiterserum
+	tab pv`x'_serum_positive if pv`x'neuttiterserum==., m
+	gen pv`x'_serum_detectable = 0
+	replace pv`x'_serum_detectable = 1 if pv`x'neuttiterserum>=4
+	replace pv`x'_serum_detectable = . if pv`x'neuttiterserum==.
+	bysort pv`x'_serum_detectable: summ pv`x'neuttiterserum
+}
+tab1 pv1_serum_positive pv1_serum_detectable pv2_serum_positive pv2_serum_detectable pv3_serum_positive pv3_serum_detectable
+*/
+
+//Tag if missing any serum neut data
+ misstable summarize logPV1_serum logPV2_serum logPV3_serum
+tab logPV1_serum if logPV3_serum == ., m
+tab logPV3_serum if logPV1_serum == ., m
+tab logPV2_serum if logPV3_serum == ., m
+ //again same particpants are missing on all
+tab visit if logPV3_serum == ., m // spread across all visits
+tab logPV3_serum if logPV3_stool==., m //3 of the obs missing stool neut are also missing serum, 1 has valid serum.
+ 
+bysort pid: egen flag_missing_serum_neuts = max(logPV1_serum), missing
+recode flag_missing_serum_neuts 0/50=0 .=1
+sort pid visit
+list visit flag_missing_serum_neuts logPV1_serum logPV3_serum logPV3_serum if flag_missing_serum_neuts==1, sepby(pid)
+
+
+//Binary - response to PV1 or PV3 at any time-point inlcuding baseline
+gen pv1_stool_responses_prep = 0
+replace pv1_stool_responses_prep = . if logPV1_stool==.
+replace pv1_stool_responses_prep = 1 if pv1_stool_positive==1
+bysort pid: egen pv1_stool_responses = max(pv1_stool_responses_prep)
+drop pv1_stool_responses_prep 
+tab pv1_stool_responses  if visit==1
+
+gen pv1_stool_responses_exclbl_prep = 0
+replace pv1_stool_responses_exclbl_prep = . if logPV1_stool==. & visit>1
+replace pv1_stool_responses_exclbl_prep = 1 if pv1_stool_positive==1 & visit>1
+bysort pid: egen pv1_stool_responses_exclbl = max(pv1_stool_responses_exclbl_prep)
+drop pv1_stool_responses_exclbl_prep 
+tab pv1_stool_responses_exclbl  if visit==1
+
+gen pv3_stool_responses_prep = 0
+replace pv3_stool_responses_prep = . if logPV3_stool==.
+replace pv3_stool_responses_prep = 1 if pv3_stool_positive==1
+bysort pid: egen pv3_stool_responses = max(pv3_stool_responses_prep)
+drop pv3_stool_responses_prep 
+tab pv3_stool_responses  if visit==1
+
+gen pv3_stool_responses_exclbl_prep = 0
+replace pv3_stool_responses_exclbl_prep = . if logPV3_stool==. & visit>1
+replace pv3_stool_responses_exclbl_prep = 1 if pv3_stool_positive==1 & visit>1
+bysort pid: egen pv3_stool_responses_exclbl = max(pv3_stool_responses_exclbl_prep)
+drop pv3_stool_responses_exclbl_prep 
+tab pv3_stool_responses_exclbl  if visit==1
+
+
 save "merged_dataset_long", replace
 use "merged_dataset_long", clear
 
-keep pid visit 
-save "cross_sectional_lookup", replace
-
-//////////////////////////////////////////////
-*Merging in Ig data
-use "stool_IgA_withlabids_studyvisitmonths.dta", clear
-replace pid = "POL 482" if pid=="POL. 482"
-replace pid = "POL 282" if pid=="POL 282 "
-tab study_visit_month
-gen sampletype = 2
-replace sampletype = 1 if study_visit_month=="aim2"
-label define sampletype 1 "cross-sectional" 2 "longitudinal"
-label values sampletype sampletype
-tab sampletype
-keep if sampletype==2
-gen visit = 1
-replace visit = 2 if study_visit_month=="1-month"
-replace visit = 3 if study_visit_month=="3-months"
-replace visit = 4 if study_visit_month=="6-month" 
-drop study_visit_month
-duplicates tag pid visit, gen(duplicated_flag)
-sort pid visit
-list if duplicated>0, sepby(pid)
-drop if duplicated==3
-
-foreach x in 1 2 3{
-	destring IPV`x', replace
-	bysort pid visit: egen PV`x'_IgA_stool = mean(IPV`x')
-	list in 1/10, sepby(pid)
-	list if duplicated>0, sepby(pid)
-	drop IPV`x'
-	gen logPV`x'_IgA_stool = ln(PV`x'_IgA_stool)/ln(10)
-}
-list if duplicated>0, sepby(pid)
-duplicates drop pid visit, force
-list in 1/10, sepby(pid)
-save "longitudinal_stool_IgA", replace
-
-use "serum_IgG_1000f_with_labids_studyvisits.dta", clear //Using 1000f dilution rather than 10,000f due to better sensivity (less saturation at the top)
-replace pid = "POL 482" if pid=="POL. 482"
-tab study_visit_month
-gen sampletype = 2
-replace sampletype = 1 if study_visit_month=="Aim2"
-label define sampletype 1 "cross-sectional" 2 "longitudinal"
-label values sampletype sampletype
-tab sampletype
-keep if sampletype==2
-gen visit = 1
-replace visit = 2 if study_visit_month=="1-month"
-replace visit = 3 if study_visit_month=="3-month "
-replace visit = 4 if study_visit_month=="6-months" 
-tab study_visit_month visit, m
-drop study_visit_month
-duplicates tag pid visit, gen(duplicated_flag)
-sort pid visit
-list if duplicated>0, sepby(pid)
-
-foreach x in 1 2 3{
-	destring IPV`x', replace
-	bysort pid visit: egen PV`x'_IgG_serum  = mean(IPV`x')
-	list in 1/10, sepby(pid)
-	list if duplicated>0, sepby(pid)
-	drop IPV`x'
-	gen logPV`x'_IgG_serum = ln(PV`x'_IgG_serum )/ln(10)
-}
-list if duplicated>0, sepby(pid)
-duplicates drop pid visit, force
-list in 1/10, sepby(pid)
-replace pid = "POL 482" if pid=="POL. 482"
-
-save "longitudinal_serum_IgG", replace
 
 
-use "serum_IgA_with_labids_studyvisits.dta", clear
-replace pid = "POL 482" if pid=="POL. 482"
-tab study_visit_month
-gen sampletype = 2
-replace sampletype = 1 if study_visit_month=="Aim2"
-label define sampletype 1 "cross-sectional" 2 "longitudinal"
-label values sampletype sampletype
-tab sampletype
-keep if sampletype==2
-gen visit = 1
-replace visit = 2 if study_visit_month=="1-month"
-replace visit = 3 if study_visit_month=="3-months"
-replace visit = 4 if study_visit_month=="6-months" 
-tab study_visit_month visit, m
-drop study_visit_month
-duplicates tag pid visit, gen(duplicated_flag)
-sort pid visit
-list if duplicated>0, sepby(pid)
 
-foreach x in 1 2 3{
-	replace IPV`x'="." if IPV`x'=="NaN"
-	destring IPV`x', replace
-	bysort pid visit: egen PV`x'_IgA_serum  = mean(IPV`x')
-	list in 1/10, sepby(pid)
-	list if duplicated>0, sepby(pid)
-	drop IPV`x'
-	gen logPV`x'_IgA_serum = ln(PV`x'_IgA_serum)/ln(10)
-}
-list if duplicated>0, sepby(pid)
-duplicates drop pid visit, force
-list in 1/10, sepby(pid)
-
-save "longitudinal_serum_IgA", replace
-
-use "longitudinal_serum_IgA", clear
-
-merge 1:1 pid visit using "longitudinal_serum_IgG.dta"
-list pid sampletype visit duplicate logPV1* if _merge!=3
-drop _merge
-
-merge 1:1 pid visit using "longitudinal_stool_IgA.dta"
-sort pid visit
-list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
-drop _merge
-
-save "longitudinal_Ig_data", replace
-
-use "merged_dataset_long", clear
-merge 1:1 pid visit using "longitudinal_Ig_data"
-list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
-drop _merge
-
-save "merged_dataset_long", replace
-
-//////////////////////////////////////////////////////////
-**# Data cleaning for tables 
 *Prepping variables for Table 1
 *Mother age at birth
 gen age_mother_weeks = (age_mother*52)+26
@@ -548,119 +536,6 @@ replace summ_visit_day = 30 if visit==2
 replace summ_visit_day = 90 if visit==3
 replace summ_visit_day = 180 if visit==4
 
-*Data cleaning of mucosal immunity data:
-**convert titers to log(2) scale. Higher titer indicates higher amount of antibodies. The oral poliovirus vaccine generates antibodies to PV1 and PV3 (types 1 and 3 poliovirus)
-**Using the equation log2(x) = ln(x)/ln(2)
-/*gen studyvisitmonth = studyvisit_month 
-label define visitlbl 0 "Enrollment" 1 "1 month" 3 "3 months" 6 "6 months", replace
-label values studyvisitmonth visitlbl */
-
-generate logPV1_stool = ln(pv1_stool)/ln(2)
-generate logPV2_stool = ln(pv2_stool)/ln(2)
-generate logPV3_stool = ln(pv3_stool)/ln(2)
-
-generate logPV1_serum = ln(pv1neuttiterserum)/ln(2)
-generate logPV2_serum = ln(pv2neuttiterserum)/ln(2)
-generate logPV3_serum = ln(pv3neuttiterserum)/ln(2)
-
-*Generating binary neuts data:
-foreach x in 1 2 3 {
-	gen pv`x'_stool_positive = 0
-	replace pv`x'_stool_positive = 1 if pv`x'_stool>=8
-	replace pv`x'_stool_positive = . if pv`x'_stool==.
-	bysort pv`x'_stool_positive: summ pv`x'_stool 
-	tab pv`x'_stool_positive if pv`x'_stool==., m
-	gen pv`x'_stool_detectable = 0
-	replace pv`x'_stool_detectable = 1 if pv`x'_stool>=4
-	replace pv`x'_stool_detectable = . if pv`x'_stool==.
-	bysort pv`x'_stool_detectable: summ pv`x'_stool
-}
-tab1 pv1_stool_positive pv2_stool_positive pv3_stool_positive pv1_stool_detectable pv2_stool_detectable pv3_stool_detectable
-tab pv1_stool_positive pv3_stool_positive, col
-
-*Make a strata variable - high or low at baseline for neuts
-foreach x in 1 2 3 {
-	gen high_neut_baseline_pv`x'_prep = pv`x'_stool_positive
-	replace high_neut_baseline_pv`x'_prep = . if visit>1
-	bysort pid: egen high_neut_baseline_pv`x' = max(high_neut_baseline_pv`x'_prep)
-	drop high_neut_baseline_pv`x'_prep
-	sort pid visit
-	list pid visit pv`x'_stool_positive high_neut_baseline_pv`x' in 1/20
-}
-
-
-//A few missing:
-list pid visit age_opv14_weeks if pv1_stool==. //4 different pids. One is the 55 week old who will be excluded anyway. So 3 obs missing.
-
-//Tag if missing any stool neut data
-tab logPV1_stool if logPV3_stool == ., m
-tab logPV3_stool if logPV1_stool == ., m
-tab logPV2_stool if logPV3_stool == ., m //same particpants are missing on all
-bysort pid: egen flag_missing_stool_neuts = max(logPV1_stool), missing
-recode flag_missing_stool_neuts 0/10=0 .=1
-sort pid visit
-list visit flag_missing_stool_neuts logPV1_stool logPV3_stool logPV3_stool if flag_missing_stool_neuts==1, sepby(pid) //just missing on 1 obs, not all of them.
-
-
-/*same for serum:
-foreach x in 1 2 3 {
-	gen pv`x'_serum_positive = 0
-	replace pv`x'_serum_positive = 1 if pv`x'neuttiterserum>=8
-	replace pv`x'_serum_positive = . if pv`x'neuttiterserum==.
-	bysort pv`x'_serum_positive: summ pv`x'neuttiterserum
-	tab pv`x'_serum_positive if pv`x'neuttiterserum==., m
-	gen pv`x'_serum_detectable = 0
-	replace pv`x'_serum_detectable = 1 if pv`x'neuttiterserum>=4
-	replace pv`x'_serum_detectable = . if pv`x'neuttiterserum==.
-	bysort pv`x'_serum_detectable: summ pv`x'neuttiterserum
-}
-tab1 pv1_serum_positive pv1_serum_detectable pv2_serum_positive pv2_serum_detectable pv3_serum_positive pv3_serum_detectable
-*/
-
-//Tag if missing any serum neut data
- misstable summarize logPV1_serum logPV2_serum logPV3_serum
-tab logPV1_serum if logPV3_serum == ., m
-tab logPV3_serum if logPV1_serum == ., m
-tab logPV2_serum if logPV3_serum == ., m
- //again same particpants are missing on all
-tab visit if logPV3_serum == ., m // spread across all visits
-tab logPV3_serum if logPV3_stool==., m //3 of the obs missing stool neut are also missing serum, 1 has valid serum.
- 
-bysort pid: egen flag_missing_serum_neuts = max(logPV1_serum), missing
-recode flag_missing_serum_neuts 0/50=0 .=1
-sort pid visit
-list visit flag_missing_serum_neuts logPV1_serum logPV3_serum logPV3_serum if flag_missing_serum_neuts==1, sepby(pid)
-
-
-//Binary - response to PV1 or PV3 at any time-point inlcuding baseline
-gen pv1_stool_responses_prep = 0
-replace pv1_stool_responses_prep = . if logPV1_stool==.
-replace pv1_stool_responses_prep = 1 if pv1_stool_positive==1
-bysort pid: egen pv1_stool_responses = max(pv1_stool_responses_prep)
-drop pv1_stool_responses_prep 
-tab pv1_stool_responses  if visit==1
-
-gen pv1_stool_responses_exclbl_prep = 0
-replace pv1_stool_responses_exclbl_prep = . if logPV1_stool==. & visit>1
-replace pv1_stool_responses_exclbl_prep = 1 if pv1_stool_positive==1 & visit>1
-bysort pid: egen pv1_stool_responses_exclbl = max(pv1_stool_responses_exclbl_prep)
-drop pv1_stool_responses_exclbl_prep 
-tab pv1_stool_responses_exclbl  if visit==1
-
-gen pv3_stool_responses_prep = 0
-replace pv3_stool_responses_prep = . if logPV3_stool==.
-replace pv3_stool_responses_prep = 1 if pv3_stool_positive==1
-bysort pid: egen pv3_stool_responses = max(pv3_stool_responses_prep)
-drop pv3_stool_responses_prep 
-tab pv3_stool_responses  if visit==1
-
-gen pv3_stool_responses_exclbl_prep = 0
-replace pv3_stool_responses_exclbl_prep = . if logPV3_stool==. & visit>1
-replace pv3_stool_responses_exclbl_prep = 1 if pv3_stool_positive==1 & visit>1
-bysort pid: egen pv3_stool_responses_exclbl = max(pv3_stool_responses_exclbl_prep)
-drop pv3_stool_responses_exclbl_prep 
-tab pv3_stool_responses_exclbl  if visit==1
-
 //Binary variables to simplify regression analyses
 gen ageweek_bin = 0
 replace ageweek_bin = 1 if ageweek>=17.14286 //upper quartile
@@ -693,6 +568,131 @@ gen follow_up_months = follow_up_days/30
 
 save "merged_dataset_long", replace
 use "merged_dataset_long", clear
+
+//////////////////////////////////////////////
+**# Merging in Ig data
+use "stool_IgA_withlabids_studyvisitmonths.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+replace pid = "POL 282" if pid=="POL 282 "
+drop if pid=="POL 421" //not included in the baseline results / had been dropped from the study
+tab study_visit_month
+gen sampletype = 2
+replace sampletype = 1 if study_visit_month=="aim2"
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+tab sampletype
+keep if sampletype==2
+gen visit = 1
+replace visit = 2 if study_visit_month=="1-month"
+replace visit = 3 if study_visit_month=="3-months"
+replace visit = 4 if study_visit_month=="6-month" 
+drop study_visit_month
+duplicates tag pid visit, gen(duplicated_flag)
+sort pid visit
+list if duplicated>0, sepby(pid)
+drop if duplicated==3
+
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	bysort pid visit: egen PV`x'_IgA_stool = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgA_stool = ln(PV`x'_IgA_stool)/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid visit, force
+list in 1/10, sepby(pid)
+save "longitudinal_stool_IgA", replace
+
+use "serum_IgG_1000f_with_labids_studyvisits.dta", clear //Using 1000f dilution rather than 10,000f due to better sensivity (less saturation at the top)
+replace pid = "POL 482" if pid=="POL. 482"
+tab study_visit_month
+gen sampletype = 2
+replace sampletype = 1 if study_visit_month=="Aim2"
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+tab sampletype
+keep if sampletype==2
+gen visit = 1
+replace visit = 2 if study_visit_month=="1-month"
+replace visit = 3 if study_visit_month=="3-month "
+replace visit = 4 if study_visit_month=="6-months" 
+tab study_visit_month visit, m
+drop study_visit_month
+duplicates tag pid visit, gen(duplicated_flag)
+sort pid visit
+list if duplicated>0, sepby(pid)
+
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	bysort pid visit: egen PV`x'_IgG_serum  = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgG_serum = ln(PV`x'_IgG_serum )/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid visit, force
+list in 1/10, sepby(pid)
+replace pid = "POL 482" if pid=="POL. 482"
+save "longitudinal_serum_IgG", replace
+
+use "serum_IgA_with_labids_studyvisits.dta", clear
+replace pid = "POL 482" if pid=="POL. 482"
+tab study_visit_month
+gen sampletype = 2
+replace sampletype = 1 if study_visit_month=="Aim2"
+label define sampletype 1 "cross-sectional" 2 "longitudinal"
+label values sampletype sampletype
+tab sampletype
+keep if sampletype==2
+gen visit = 1
+replace visit = 2 if study_visit_month=="1-month"
+replace visit = 3 if study_visit_month=="3-months"
+replace visit = 4 if study_visit_month=="6-months" 
+tab study_visit_month visit, m
+drop study_visit_month
+duplicates tag pid visit, gen(duplicated_flag)
+sort pid visit
+list if duplicated>0, sepby(pid)
+
+foreach x in 1 2 3{
+	replace IPV`x'="." if IPV`x'=="NaN"
+	destring IPV`x', replace
+	bysort pid visit: egen PV`x'_IgA_serum  = mean(IPV`x')
+	list in 1/10, sepby(pid)
+	list if duplicated>0, sepby(pid)
+	drop IPV`x'
+	gen logPV`x'_IgA_serum = ln(PV`x'_IgA_serum)/ln(10)
+}
+list if duplicated>0, sepby(pid)
+duplicates drop pid visit, force
+list in 1/10, sepby(pid)
+
+save "longitudinal_serum_IgA", replace
+
+use "longitudinal_serum_IgA", clear
+merge 1:1 pid visit using "longitudinal_serum_IgG.dta"
+list pid sampletype visit duplicate logPV1* if _merge!=3
+drop _merge
+
+merge 1:1 pid visit using "longitudinal_stool_IgA.dta"
+sort pid visit
+list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
+drop _merge
+save "longitudinal_Ig_data", replace
+use "longitudinal_Ig_data", clear
+keep if visit==1
+duplicates report pid //103 pids - correct.
+
+use "merged_dataset_long", clear
+merge 1:1 pid visit using "longitudinal_Ig_data"
+list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
+drop _merge
+
+save "merged_dataset_long", replace
+
 
 //////////////////////////////////
 *Table 1
@@ -795,3 +795,4 @@ tab1 coinfect_otherbacteria coinfect_virus coinfect_giardia if coinfect_enteroin
 tab1 coinfect_virus coinfect_giardia if coinfect_otherbacteria==1
 tab1 coinfect_giardia if coinfect_virus==1
 tab coinfect_giardia
+
