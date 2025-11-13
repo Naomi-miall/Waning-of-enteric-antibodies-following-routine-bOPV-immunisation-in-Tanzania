@@ -113,12 +113,6 @@ postclose handle
 use results_temp.dta, clear
 export excel using "supplementarytab3.xlsx", sheet("Sheet 1") replace
 
-summarize logPV1_IgA_stool if visit==2, d
-local N = r(N)
-local p25 = r(p25)
-display `p25'
-
-
 use "Both_datasets_long", clear
 ///////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -171,12 +165,12 @@ summ logPV3_stool if visit ==2, d
 display (2.777778/2)/.013512
 
 ////////////////////////////////////////////////////////////////////
-/*Regressions with covariates:
+/*/*Regressions with covariates:
 Adjusting for: 
 Set 1: age, sex
 Set 2: age, sex, breastfeeding status, primary water source, and stunting.
 Set 3: age, sex, anyinfection (includes schisto, parasites, biofire but not HIV exposure)
-Set 4: age, sex, and each coinfection separately */ 
+Set 4: age, sex, and each coinfection separately */
 *for now adjusted for age as a binary but in future I'll adjust for age as continuous.
 
 use "Both_datasets_long", clear
@@ -244,7 +238,61 @@ foreach x in bf_4months watersource_bin stunting hiv_exposure any_infection coin
 postclose handle
 use results_temp.dta, clear
 export excel using "reg_long_results2.xlsx", replace
+*/
 
+//Longitudinal only including baseline in the outcome - for forrest plot
+use "Both_datasets_long", clear
+keep if sampletype==2 & visit==1
+
+postfile handle str20 pv str20 outcome coef pval ci_low ci_high using results_temp.dta, replace
+
+foreach x in bf_4months watersource_bin stunting hiv_exposure coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus {
+	logistic pv1_stool_responses `x' ageweek, or
+	local b = exp(_b[`x'])
+    local ci_l = exp(_b[`x'] - 1.96 * _se[`x'])
+    local ci_h = exp(_b[`x'] + 1.96 * _se[`x'])
+	testparm `x'
+	local p = r(p)
+	post handle ("pv1") ("`x'") (`b') (`p') (`ci_l') (`ci_h')
+	
+	logistic pv3_stool_responses `x' ageweek, or
+	local b = exp(_b[`x'])
+    local ci_l = exp(_b[`x'] - 1.96 * _se[`x'])
+    local ci_h = exp(_b[`x'] + 1.96 * _se[`x'])
+	testparm `x'
+	local p = r(p)
+	post handle ("pv3") ("`x'") (`b') (`p') (`ci_l') (`ci_h')
+} //type 3 has no variation within coinfect_caa - none of the pv3 non negative were schisto positive.
+foreach x in coinfect_caa {
+	logistic pv1_stool_responses `x' ageweek, or
+	local b = exp(_b[`x'])
+    local ci_l = exp(_b[`x'] - 1.96 * _se[`x'])
+    local ci_h = exp(_b[`x'] + 1.96 * _se[`x'])
+	testparm `x'
+	local p = r(p)
+	post handle ("pv1") ("`x'") (`b') (`p') (`ci_l') (`ci_h')
+}
+postclose handle
+use results_temp.dta, clear
+export excel using "reg_long_results7.xlsx", replace
+
+clear
+import excel "reg_long_results7.xlsx"
+rename A PV
+rename B var
+rename C OR
+rename D p
+rename E Lower_confidence_interval
+rename F Upper_confidence_interval
+list in 1
+replace PV = "1" if PV=="pv1"
+replace PV = "3" if PV=="pv3"
+destring PV, replace
+reshape wide OR p Lower_confidence_interval Upper_confidence_interval, i(var) j(PV) 
+list in 1
+save "Forest_plot_2", replace
+
+/*
 //Looking at detectable 
 use "Both_datasets_long", clear
 gen detectable_pv1_prep = pv1_stool_detectable
@@ -344,6 +392,8 @@ foreach x in bf_4months watersource_bin stunting hiv_exposure any_infection coin
 postclose handle4
 use results_temp4.dta, clear
 export excel using "reg_long_results5.xlsx", replace
+
+*/
 
 ////////////////////////////////////////////////////////////
 *correlations
