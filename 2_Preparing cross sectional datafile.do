@@ -1,4 +1,4 @@
-*Cleaning cross sectional dataset for merging with 
+*Cleaning cross sectional dataset for merging
 *to get pvx_stool; pvxneuttitersserum; no_obs; visit; date; femalesex; ageweek; age_mother; complete_edu_adult; minutes_towatersource; hiv_status_mother; preceding_birth_interval_months; infant_feeding_type; currently_breastfed; birthweight; anthro; 
 
 
@@ -197,7 +197,7 @@ list coinfect* if any_infection ==.
 
 tab coinfect_parasite coinfect_caa, m
 
-/////////////////////////////////////////////////////////////////////
+*Age
 gen ageweek = int(agedays/7)
 
 *Age mother - generating age of mother at birth
@@ -215,16 +215,6 @@ replace bw_bucket = 3 if birthweight >= 2.5
 label define bw_cat 1 "Very low (<1.5)" 2 "<2.5" 3 "Normal (≥2.5)"
 label values bw_bucket bw_cat
 tab bw_bucket
-
-/*tabulate weight_kgs
-summarize weight_kgs, detail
-tabulate height_cm
-summarize height_cm, detail
-tabulate armcircumf
-summarize armcircumf, detail
-summarize headcircumf, detail 
-tabulate legedema
-*/
 
 *Breastfeeding at 4 months (because we have baseline data for longitudinal sample feeding status which is on average at 16 weeks so 4 months)
 gen bf_4months = .
@@ -254,20 +244,6 @@ tabulate delay_bopv0, m
 gen age_opv0_days = opv_date - infant_dob
 tabulate age_opv0_days
 summarize age_opv0_days, detail
-
-*weeks from birth till bOPV 2 at 6 weeks
-**calculating age in weeks at the time of week 6 vaccination
-gen age_opv6_days = bopv6w_date - infant_dob
-gen age_opv6_weeks = round(age_opv6_days / 7, 0.1)
-tabulate age_opv6_weeks
-summarize age_opv6_weeks, detail
-
-**weeks from birth till bOPV 3 at 10 weeks
-**calculating age in weeks at the time of week 10 vaccination
-gen age_opv10_days = bopv10w_date - infant_dob
-gen age_opv10_weeks = round(age_opv10_days / 7, 0.1)
-tabulate age_opv10_weeks
-summarize age_opv10_weeks, detail 
 
 **weeks from birth till bOPV 4 at 14 weeks
 **calculating age in weeks at the time of week 14 vaccination
@@ -348,7 +324,6 @@ foreach x in 1 2 3 {
 tab1 pv1_stool_positive pv2_stool_positive pv3_stool_positive pv1_stool_detectable pv2_stool_detectable pv3_stool_detectable
 tab pv1_stool_positive pv3_stool_positive, col
 //None missing stool data
-
 
 //Tag if missing any serum neut data
  misstable summarize logPV1_serum logPV2_serum logPV3_serum
@@ -469,12 +444,3 @@ list pid duplicate logPV1* in 1/10
 
 save "cross-sectional_clean", replace
 
-//////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////
-//Table 1 
-use "cross-sectional_clean", clear
-tab1 femalesex complete_edu_adult delay_bopv0 bf_4months bw_bucket stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure HIV_status_of_child coinfect_parasite coinfect_caa ipv_bin rota_bin
-summ ageweek mother_age_at_birth minutes_towatersource age_opv14_weeks weeks_since_rota10, d
-summ caa_concentration if coinfect_caa==1, d
-tab parastie_identified_from_kato if coinfect_parasite!=., m 
