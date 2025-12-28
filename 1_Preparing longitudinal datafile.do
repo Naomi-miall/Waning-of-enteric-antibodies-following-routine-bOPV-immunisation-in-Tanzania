@@ -1,18 +1,15 @@
 /* Duration of polio antibody responses following bOPV vaccination in Tanzania.
   Alexandra Codeiro and Naomi Miall
   September 2025
+ 
 */
 
+*SET UP
 clear
 set more off
 
 *Filepath for Naomi:
 cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
-
-use poliovaccinestudy_Tanzania_aim1_baselinedata_092425, clear
-
-describe
-summarize
 
 //////////////////////////////////////////////////////////////////
 **# Anthro measures
@@ -96,7 +93,7 @@ tab sex femalesex, m
 /* 	Fill in the macro parameters to run the command */
 igrowup_restricted reflib datalib datalab sex agedays ageunit weight_kgs height_cm measure oedema sw
 
-use "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta"
+use "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", clear
 
 *check height adjustment worked
 *recommended that lenght measured for children < 731 days, if height measured for children < 731 days then add 0.7 cm. 
@@ -122,9 +119,7 @@ list pid agedays weight_kgs _clenhei legedema _cbmi _zwei _zlen _zbmi _zwfl if l
 	summ weight_kgs, d //median amongst participants is 6.6kgs
 	
 list pid agedays weight_kgs _clenhei legedema _cbmi _zwei _zlen _zbmi _zwfl if _flen==1
-	
 list pid agedays weight_kgs _clenhei legedema _cbmi _zwei _zlen _zbmi _zwfl if _fbmi==1
-
 list pid agedays weight_kgs _clenhei legedema _cbmi _zwei _zlen _zbmi _zwfl if _fwfl==1
 
 /*Generating binary variables
@@ -163,7 +158,6 @@ gen overweight = (_zwei>2) if !missing(_zwei)
 	list pid sex agedays weight_kgs _zwei if overweight==1	
 	
 	drop sw measure oedema ageunit ageweek_integer agedays sex datalab datalib reflib _agedays _clenhei _cbmi _fwfl _flen _fwei _fbmi
-	
 	drop _zwei _zlen _zbmi
 	
 save "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", replace
@@ -226,22 +220,19 @@ tab coinfect_giardia // 5 positive
 *Other
 tab1 Cryptosporidium Cyclospora_cayetanensis Entamoeba_histolytica Vibrio Yersinia_enterocolitica //No participants have any of the above
 
-*None_detected refers to biofire, not to schisto
-tab1 coinfect_caa coinfect_enteroinvasive coinfect_giardia coinfect_otherbacteria coinfect_parasite coinfect_virus if None_detected==1
 
-*Number of infections
+*Any infection and number of infections (including parasites, schisto, biofire)
+*NB - existing variable None_detected refers to biofire, not to schisto
+tab1 coinfect_caa coinfect_enteroinvasive coinfect_giardia coinfect_otherbacteria coinfect_parasite coinfect_virus if None_detected==1
 egen no_infections_ungrouped =  anycount(coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus), values(1)
 tab no_infections_ungrouped
 label variable no_infections_ungrouped "Number of infections ungrouped, not including HIV exposure"
-
 gen any_infection = no_infections_ungrouped
 replace any_infection = 1 if no_infections_ungrouped>0
 
 drop Enteroinvasive_ecoli_EIEC Shigella_toxin_STEC Campylobacter Salmonella Clostridium_difficile Plesiomonas_shigelloides Enterotoxigenic_ecoli_ETEC Enteropathogenic_ecoli_EPEC Enteroaggregative_ecoli_EAEC Adenovirus Astrovirus Norovirus Sapovirus Cryptosporidium Cyclospora_cayetanensis Entamoeba_histolytica Vibrio Yersinia_enterocolitica
 
-tab1 coinfect_parasite coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus coinfect_giardia
-
-
+*Cohort
 gen sampletype=2
 label define sampletype 1 "cross-sectional" 2 "longitudinal"
 label values sampletype sampletype
@@ -249,7 +240,7 @@ label values sampletype sampletype
 save "Baseline_data_preppedformerge", replace
 use "Baseline_data_preppedformerge", clear
 /////////////////////////////////////////////////////////
-**# Merging covariate and outcome datafiles in long format
+**# Merging neuts data
 *Study samples data:
 *1. Prepping dates file in long
 *N.b. Make sure no space after POL 540 in the excel file
@@ -297,32 +288,18 @@ list pid visit date one_month three_months six_months no_obs in 1/50, sepby(pid)
 list pid if _merge==1 & visit>1 //none
 drop _merge
 
-/* reshape wide pv1_stool pv2_stool pv3_stool pv1neuttiterserum pv2neuttiterserum pv3neuttiterserum one_month three_months six_months, i(pid) j(study_visitnumber)
-drop one_month1 one_month3 one_month4 three_months1 three_months2 three_months4 six_months1 six_months2 six_months3
-rename one_month2 one_month
-rename three_months3 three_months
-rename six_months4 six_months
-list pid one_month three_months six_months no_obs in 1/20
-*/
-
 tab no_obs if visit==1 //66 fully complete
 tab1 one_month three_months six_months if visit==1 //103 in visit 1, 84 in visit 2, 79 in 3, 77 in 4.
-
 
 merge m:1 pid using "Baseline_data_preppedformerge", nogen
 
 replace date = interview_date if date==. & visit==1
 drop interview_date
-
 list in 1
 
 *Data cleaning of mucosal immunity data:
 **convert titers to log(2) scale. Higher titer indicates higher amount of antibodies. The oral poliovirus vaccine generates antibodies to PV1 and PV3 (types 1 and 3 poliovirus)
 **Using the equation log2(x) = ln(x)/ln(2)
-/*gen studyvisitmonth = studyvisit_month 
-label define visitlbl 0 "Enrollment" 1 "1 month" 3 "3 months" 6 "6 months", replace
-label values studyvisitmonth visitlbl */
-
 generate logPV1_stool = ln(pv1_stool)/ln(2)
 generate logPV2_stool = ln(pv2_stool)/ln(2)
 generate logPV3_stool = ln(pv3_stool)/ln(2)
@@ -356,7 +333,6 @@ foreach x in 1 2 3 {
 	list pid visit pv`x'_stool_positive high_neut_baseline_pv`x' in 1/20
 }
 
-
 //A few missing:
 list pid visit if pv1_stool==. //4 obs missing.
 
@@ -368,22 +344,6 @@ bysort pid: egen flag_missing_stool_neuts = max(logPV1_stool), missing
 recode flag_missing_stool_neuts 0/10=0 .=1
 sort pid visit
 list visit flag_missing_stool_neuts logPV1_stool logPV3_stool logPV3_stool if flag_missing_stool_neuts==1, sepby(pid) //just missing on 1 obs, not all of them.
-
-
-/*same for serum:
-foreach x in 1 2 3 {
-	gen pv`x'_serum_positive = 0
-	replace pv`x'_serum_positive = 1 if pv`x'neuttiterserum>=8
-	replace pv`x'_serum_positive = . if pv`x'neuttiterserum==.
-	bysort pv`x'_serum_positive: summ pv`x'neuttiterserum
-	tab pv`x'_serum_positive if pv`x'neuttiterserum==., m
-	gen pv`x'_serum_detectable = 0
-	replace pv`x'_serum_detectable = 1 if pv`x'neuttiterserum>=4
-	replace pv`x'_serum_detectable = . if pv`x'neuttiterserum==.
-	bysort pv`x'_serum_detectable: summ pv`x'neuttiterserum
-}
-tab1 pv1_serum_positive pv1_serum_detectable pv2_serum_positive pv2_serum_detectable pv3_serum_positive pv3_serum_detectable
-*/
 
 //Tag if missing any serum neut data
  misstable summarize logPV1_serum logPV2_serum logPV3_serum
@@ -398,7 +358,6 @@ bysort pid: egen flag_missing_serum_neuts = max(logPV1_serum), missing
 recode flag_missing_serum_neuts 0/50=0 .=1
 sort pid visit
 list visit flag_missing_serum_neuts logPV1_serum logPV3_serum logPV3_serum if flag_missing_serum_neuts==1, sepby(pid)
-
 
 //Binary - response to PV1 or PV3 at any time-point inlcuding baseline
 gen pv1_stool_responses_prep = 0
@@ -434,8 +393,7 @@ save "merged_dataset_long", replace
 use "merged_dataset_long", clear
 
 
-
-
+/////////////////////////////////////////////////////////
 *Prepping variables for Table 1
 *Mother age at birth
 gen age_mother_weeks = (age_mother*52)+26
@@ -453,17 +411,6 @@ replace bw_bucket = 3 if birthweight >= 2.5
 label define bw_cat 1 "Very low (<1.5)" 2 "<2.5" 3 "Normal (≥2.5)"
 label values bw_bucket bw_cat
 tab bw_bucket
-
-/*tabulate weight_kgs
-summarize weight_kgs, detail
-tabulate height_cm
-summarize height_cm, detail
-tabulate armcircumf
-summarize armcircumf, detail
-summarize headcircumf, detail 
-tabulate legedema
-*/
-
 tabulate vaccines_not_received 
 
 *bOPV
@@ -478,21 +425,7 @@ tabulate delay_bopv0, m
 **calculating age in days at the first bOPV vaccination 
 gen age_opv0_days = opv_date - infant_dob
 tabulate age_opv0_days
-summarize age_opv0_days, detail
-
-*weeks from birth till bOPV 2 at 6 weeks
-**calculating age in weeks at the time of week 6 vaccination
-gen age_opv6_days = bopv6w_date - infant_dob
-gen age_opv6_weeks = round(age_opv6_days / 7, 0.1)
-tabulate age_opv6_weeks
-summarize age_opv6_weeks, detail
-
-**weeks from birth till bOPV 3 at 10 weeks
-**calculating age in weeks at the time of week 10 vaccination
-gen age_opv10_days = bopv10w_date - infant_dob
-gen age_opv10_weeks = round(age_opv10_days / 7, 0.1)
-tabulate age_opv10_weeks
-summarize age_opv10_weeks, detail 
+summarize age_opv0_days, detail 
 
 **weeks from birth till bOPV 4 at 14 weeks
 **calculating age in weeks at the time of week 14 vaccination
@@ -571,6 +504,8 @@ use "merged_dataset_long", clear
 
 //////////////////////////////////////////////
 **# Merging in Ig data
+*Preparing Stool IgA datafile
+	*Tidy up pid values and add sampletype and visit labels
 use "stool_IgA_withlabids_studyvisitmonths.dta", clear
 replace pid = "POL 482" if pid=="POL. 482"
 replace pid = "POL 282" if pid=="POL 282 "
@@ -592,6 +527,7 @@ sort pid visit
 list if duplicated>0, sepby(pid)
 drop if duplicated==3
 
+	*For samples where IgA was measured twice for same individual and timepoint, take the mean and then transform all to log10 scale.
 foreach x in 1 2 3{
 	destring IPV`x', replace
 	bysort pid visit: egen PV`x'_IgA_stool = mean(IPV`x')
@@ -605,6 +541,7 @@ duplicates drop pid visit, force
 list in 1/10, sepby(pid)
 save "longitudinal_stool_IgA", replace
 
+*preparing Serum IgG file
 use "serum_IgG_1000f_with_labids_studyvisits.dta", clear //Using 1000f dilution rather than 10,000f due to better sensivity (less saturation at the top)
 replace pid = "POL 482" if pid=="POL. 482"
 tab study_visit_month
@@ -638,6 +575,7 @@ list in 1/10, sepby(pid)
 replace pid = "POL 482" if pid=="POL. 482"
 save "longitudinal_serum_IgG", replace
 
+*preparing Serum IgA file
 use "serum_IgA_with_labids_studyvisits.dta", clear
 replace pid = "POL 482" if pid=="POL. 482"
 tab study_visit_month
@@ -672,6 +610,7 @@ list in 1/10, sepby(pid)
 
 save "longitudinal_serum_IgA", replace
 
+*Merge all IgA and IgG data
 use "longitudinal_serum_IgA", clear
 merge 1:1 pid visit using "longitudinal_serum_IgG.dta"
 list pid sampletype visit duplicate logPV1* if _merge!=3
@@ -692,107 +631,4 @@ list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
 drop _merge
 
 save "merged_dataset_long", replace
-
-
-//////////////////////////////////
-*Table 1
-use "merged_dataset_long", clear
-keep if visit==1
-tab1 femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus
-summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10, d
-summ caa_concentration if coinfect_caa==1, d
-
-///////////////////////////////////////////////////////////
-**# Supplementary table 1
-*Supplementarty table: Compare demographics for those with complete data vs full-sample
-use "merged_dataset_long", clear
-keep if no_obs==4 & visit==1
-tab1  femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus
-summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10, d
-summ caa_concentration if coinfect_caa==1, d
-use "merged_dataset_long", clear
-
-/////////////////////////////////////////////////////////////////////////////////////
-**# Outcome data exploration 
-**starting to look at the logtiter data here: 
-**tables 2 and 3: looking at the mean titers at different time points, change over time of the 
-summarize logPV1_stool, detail
-summarize logPV2_stool, detail
-summarize logPV3_stool, detail
-
-*Stratifying by baseline
-use "merged_dataset_long", clear
-
-local visits 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4
-local pv 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3
-local highlowbaseline 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0
-local samplet stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum   
-forvalues x=1/32 {
-    local x1: word `x' of `visits'
-	local x2: word `x' of `pv'
-	local x3: word `x' of `highlowbaseline'
-	local x4: word `x' of `samplet'
-summarize logPV`x2'_`x4' if high_neut_baseline_pv`x2'==`x3' & visit==`x1', d
-	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p25 = r(p25)
-	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_median = r(p50)
-	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p75 = r(p75)
-}
-
-scalar list
-scalar drop _all
-
-/* local visits 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4
-local pv 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3
-local highlowbaseline 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0
-local samplet stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum   
-forvalues x=1/32 {
-    local x1: word `x' of `visits'
-	local x2: word `x' of `pv'
-	local x3: word `x' of `highlowbaseline'
-	local x4: word `x' of `samplet'
-tab pv`x2'_`x4'_positive if flag_ageoutlier==0 & high_neut_baseline_pv`x2'==`x3' & visit==`x1'
-	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p25 = r(p25)
-	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_median = r(p50)
-	scalar `x4'_pv`x2'_v`x1'_hbl`x3'_p75 = r(p75)
-} */
-
-tab1 high_neut_baseline_pv1 high_neut_baseline_pv3 if visit==1
-bysort visit: tab pv1_stool_positive if high_neut_baseline_pv1==1
-bysort visit: tab pv1_stool_positive if high_neut_baseline_pv1==0
-bysort visit: tab pv3_stool_positive if high_neut_baseline_pv3==1
-bysort visit: tab pv3_stool_positive if high_neut_baseline_pv3==0
-
-bysort visit: summ logPV1_stool if high_neut_baseline_pv1==1 
-bysort visit: summ logPV1_serum if high_neut_baseline_pv1==1 
-bysort visit: summ logPV1_stool if high_neut_baseline_pv1==0
-bysort visit: summ logPV1_serum if high_neut_baseline_pv1==0 
-bysort visit: summ logPV3_stool if high_neut_baseline_pv3==1 
-bysort visit: summ logPV3_serum if high_neut_baseline_pv3==1 
-bysort visit: summ logPV3_stool if high_neut_baseline_pv3==0 
-bysort visit: summ logPV3_serum if high_neut_baseline_pv3==0 
-
-
-bysort visit: summ logPV1_IgA_stool if high_neut_baseline_pv1==1 
-bysort visit: summ logPV1_IgA_stool if high_neut_baseline_pv1==0 
-bysort visit: summ logPV3_IgA_stool if high_neut_baseline_pv3==1  
-bysort visit: summ logPV3_IgA_stool if high_neut_baseline_pv3==0
-bysort visit: summ logPV1_IgA_serum if high_neut_baseline_pv1==1 
-bysort visit: summ logPV1_IgA_serum if high_neut_baseline_pv1==0 
-bysort visit: summ logPV3_IgA_serum if high_neut_baseline_pv3==1
-bysort visit: summ logPV3_IgA_serum if high_neut_baseline_pv3==0
-bysort visit: summ logPV1_IgG_serum if high_neut_baseline_pv1==1 
-bysort visit: summ logPV1_IgG_serum if high_neut_baseline_pv1==0 
-bysort visit: summ logPV3_IgG_serum if high_neut_baseline_pv3==1
-bysort visit: summ logPV3_IgG_serum if high_neut_baseline_pv3==0 
-
-
-////////////////////////////////////////////////////////////
-*Heatmap
-tab1 coinfect_parasite coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus coinfect_giardia if hiv_exposure==1
-tab1 coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus coinfect_giardia if coinfect_parasite==1
-tab1 coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus coinfect_giardia if coinfect_caa==1
-tab1 coinfect_otherbacteria coinfect_virus coinfect_giardia if coinfect_enteroinvasive==1
-tab1 coinfect_virus coinfect_giardia if coinfect_otherbacteria==1
-tab1 coinfect_giardia if coinfect_virus==1
-tab coinfect_giardia
 
