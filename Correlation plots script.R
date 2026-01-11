@@ -42,11 +42,10 @@ correlations$visit <- factor(correlations$visit, levels = c("1", "2", "3", "4", 
   df_cor_pv1 <-
  correlations|>
   summarise(N=n(),
-            p=cor.test(logPV1_stool,logPV1_serum,method='spearman',exact=F)$p.value,
-            rho=cor.test(logPV1_stool,logPV1_serum)$est,
+            p=cor.test(logPV1_stool,logPV1_serum,method='kendall',exact=F)$p.value,
+            tau_b=cor.test(logPV1_stool,logPV1_serum,method='kendall',exact=F)$est,
             p_num=p,
             p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
-  
 
 correlations |>
   ggplot()+geom_jitter(aes(x=logPV1_stool,y=logPV1_serum,colour=factor(sampletype)),shape=1, size=3)+
@@ -54,18 +53,17 @@ correlations |>
   scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                      labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
   geom_text(data=df_cor_pv1 |>
-              mutate(est=paste0(", rho=",round(rho,2)),
-                     lab=paste0(p,est)),
+              mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                     lab=paste0(est, ", ", p)),
             aes(x=8,y=5.5,label=lab), size=5, fontface="bold")+
   labs(y="Serum log<sub>2</sub> neutralisation titre",x="Stool log<sub>2</sub> neutralisation titre",title="Correlation between stool and serum <br> PV1-specific log<sub>2</sub> neutralisation titre")
 ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
 
   df_cor_pv3 <-
     correlations|>
-    filter(sampletype==1 | visit==2) |>
     summarise(N=n(),
-              p=cor.test(logPV3_stool,logPV3_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV3_stool,logPV3_serum)$est,
+              p=cor.test(logPV3_stool,logPV3_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV3_stool,logPV3_serum,method='kendall',exact=F)$est,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -76,8 +74,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_pv3 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=5.5,label=lab), size=5, fontface="bold")+
     labs(y="Serum log<sub>2</sub> neutralisation titre",x="Stool log<sub>2</sub> neutralisation titre",title="Correlation between stool and serum <br> PV3-specific log<sub>2</sub> neutralisation titre")
   ggsave("Figures/Correlations_pv3_sample.png", width = 6, height = 4, dpi = 300)
@@ -88,12 +86,10 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_stool <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV1_stool,logPV3_stool,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV1_stool,logPV3_stool)$est,
+              p=cor.test(logPV1_stool,logPV3_stool,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV1_stool,logPV3_stool,method='kendall',exact=F)$est,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
-  
-  
   
   correlations |>
     ggplot()+geom_jitter(aes(x=logPV1_stool,y=logPV3_stool,colour=factor(sampletype)),shape=1, size=3)+
@@ -101,8 +97,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_stool |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.5,label=lab), size=5, fontface="bold")+
     labs(y="PV3 log<sub>2</sub> neutralisation titre",x="PV1 log<sub>2</sub> neutralisation titre",title="Correlation between PV1 and PV3 <br> log<sub>2</sub> neutralisation titre in stool samples")
   ggsave("Figures/Correlations_stool_pv.png", width = 6, height = 4, dpi = 300)
@@ -112,8 +108,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_serum <-
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV1_serum,logPV3_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV1_serum,logPV3_serum)$est,
+              p=cor.test(logPV1_serum,logPV3_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV1_serum,logPV3_serum,method='kendall',exact=F)$est,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -124,9 +120,9 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_serum|>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
-              aes(x=12,y=5.3,label=lab), size=5, fontface="bold")+
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
+              aes(x=11,y=5.3,label=lab), size=5, fontface="bold")+
     labs(y="PV3 log<sub>2</sub> neutralisation titre",x="PV1 log<sub>2</sub> neutralisation titre",title="Correlation between PV1 and PV3 <br> log<sub>2</sub> neutralisation titre in serum samples")
   ggsave("Figures/Correlations_serum_pv.png", width = 6, height = 4, dpi = 300)
   
@@ -136,8 +132,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_assay_stool_pv1 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV1_stool,logPV1_IgA_stool,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV1_stool,logPV1_IgA_stool)$est,
+              p=cor.test(logPV1_stool,logPV1_IgA_stool,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV1_stool,logPV1_IgA_stool,method='kendall',exact=F)$est,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -148,8 +144,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_assay_stool_pv1 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.25,label=lab), size=5, fontface="bold")+  
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5), limits = c(1, 3.5)) +
     labs(y="PV1 log<sub>10</sub> IgA MFI",x="PV1 log<sub>2</sub> neutralisation titre",title="Correlation between PV1 <br> log<sub>2</sub> neutralisation titre and <br> log<sub>10</sub> IgA MFI in stool samples")
@@ -158,8 +154,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_assay_stool_pv3 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV3_stool,logPV3_IgA_stool,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV3_stool,logPV3_IgA_stool)$est,
+              p=cor.test(logPV3_stool,logPV3_IgA_stool,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV3_stool,logPV3_IgA_stool,method='kendall',exact=F)$est,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -170,8 +166,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_assay_stool_pv3 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.25,label=lab), size=5, fontface="bold")+
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1, 3.5)) +
     labs(y="PV3 log<sub>10</sub> IgA MFI",x="PV3 log<sub>2</sub> neutralisation titre",title="Correlation between PV3 <br> log<sub>2</sub> neutralisation titre and <br> log<sub>10</sub> IgA MFI in stool samples")
@@ -181,8 +177,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_assay_serum_pv1 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV1_serum,logPV1_IgA_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV1_serum,logPV1_IgA_serum)$estimate,
+              p=cor.test(logPV1_serum,logPV1_IgA_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV1_serum,logPV1_IgA_serum,method='kendall',exact=F)$estimate,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -192,8 +188,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_assay_serum_pv1 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.75,label=lab), size=5, fontface="bold")+
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1.5, 4)) +
     labs(y="PV1 log<sub>10</sub> IgA MFI",x="PV1 log<sub>2</sub> neutralisation titre",title="Correlation between PV1 <br> log<sub>2</sub> neutralisation titre and <br> log<sub>10</sub> IgA MFI in serum samples")
@@ -202,8 +198,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_assay_serum_pv3 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV3_serum,logPV3_IgA_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV3_serum,logPV3_IgA_serum)$est,
+              p=cor.test(logPV3_serum,logPV3_IgA_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV3_serum,logPV3_IgA_serum,method='kendall',exact=F)$est,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -214,8 +210,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_assay_serum_pv3 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.75,label=lab), size=5, fontface="bold")+   
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1.5, 4)) +
     labs(y="PV3 log<sub>10</sub> IgA MFI",x="PV3 log<sub>2</sub> neutralisation titre",title="Correlation between PV3 <br> log<sub>2</sub> neutralisation titre and <br> log<sub>10</sub> IgA MFI in serum samples")
@@ -226,8 +222,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_IgG_pv1 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV1_serum,logPV1_IgG_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV1_serum,logPV1_IgG_serum)$estimate,
+              p=cor.test(logPV1_serum,logPV1_IgG_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV1_serum,logPV1_IgG_serum,method='kendall',exact=F)$estimate,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -237,8 +233,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_IgG_pv1 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.75,label=lab), size=5, fontface="bold")+
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1.5, 4)) +
     labs(y="PV1 log<sub>10</sub> IgG MFI",x="PV1 log<sub>2</sub> neutralisation titre",title="Correlation between PV1 <br> log<sub>2</sub> neutralisation titre and <br> log<sub>10</sub> IgG MFI in serum samples")
@@ -247,8 +243,8 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   df_cor_IgG_pv3 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV3_serum,logPV3_IgG_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV3_serum,logPV3_IgG_serum)$estimate,
+              p=cor.test(logPV3_serum,logPV3_IgG_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV3_serum,logPV3_IgG_serum,method='kendall',exact=F)$estimate,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -258,19 +254,19 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_IgG_pv3 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=8,y=1.75,label=lab), size=5, fontface="bold")+
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1.5, 4)) +
     labs(y="PV3 log<sub>10</sub> IgG MFI",x="PV3 log<sub>2</sub> neutralisation titre",title="Correlation between PV3 <br> log<sub>2</sub> neutralisation titre and <br> log<sub>10</sub> IgG MFI in serum samples")
   ggsave("Figures/Correlations_IgG_pv3.png", width = 6, height = 4, dpi = 300)
   
-#Neuts and IgG in serum
+#IgA and IgG in serum
   df_cor_IgGA_pv1 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV1_IgA_serum,logPV1_IgG_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV1_IgA_serum,logPV1_IgG_serum)$estimate,
+              p=cor.test(logPV1_IgA_serum,logPV1_IgG_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV1_IgA_serum,logPV1_IgG_serum,method='kendall',exact=F)$estimate,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -280,18 +276,19 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_IgGA_pv1 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=3,y=1.75,label=lab), size=5, fontface="bold")+
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1.5, 4)) +
+    scale_x_continuous(breaks = c(1.5, 2.0, 2.5, 3.0, 3.5), limits = c(1.5,3.75)) +
     labs(y="PV1 log<sub>10</sub> IgG MFI",x="PV1 log<sub>10</sub> IgA MFI",title="Correlation between PV1 <br> log<sub>10</sub> IgA MFI and <br> log<sub>10</sub> IgG MFI in serum samples")
   ggsave("Figures/Correlations_IgG_IgA_pv1.png", width = 6, height = 4, dpi = 300)
   
   df_cor_IgGA_pv3 <- 
     correlations |>
     summarise(N=n(),
-              p=cor.test(logPV3_IgA_serum,logPV3_IgG_serum,method='spearman',exact=F)$p.value,
-              rho=cor.test(logPV3_IgA_serum,logPV3_IgG_serum)$estimate,
+              p=cor.test(logPV3_IgA_serum,logPV3_IgG_serum,method='kendall',exact=F)$p.value,
+              tau_b=cor.test(logPV3_IgA_serum,logPV3_IgG_serum,method='kendall',exact=F)$estimate,
               p_num=p,
               p=ifelse(p<0.001,"p<0.001",paste0("p=",round(p,3))))
   
@@ -301,10 +298,12 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
     scale_color_manual(name = "Sample", values = c("1" = "#1f78b4", "2" = "#E66218"),
                        labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
     geom_text(data=df_cor_IgGA_pv3 |>
-                mutate(est=paste0(", rho=",round(rho,2)),
-                       lab=paste0(p,est)),
+                mutate(est=paste0("Tau_b=",round(tau_b,2)),
+                       lab=paste0(est, ", ", p)),
               aes(x=3,y=1.75,label=lab), size=5, fontface="bold")+
     scale_y_continuous(breaks = c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0), limits = c(1.5, 4)) +
+    scale_x_continuous(breaks = c(1.5, 2.0, 2.5, 3.0, 3.5), limits = c(1.5,3.75)) +
     labs(y="PV3 log<sub>10</sub> IgG MFI",x="PV3 log<sub>10</sub> IgA MFI",title="Correlation between PV3 <br> log<sub>10</sub> IgA MFI and <br> log<sub>10</sub> IgG MFI in serum samples")
   ggsave("Figures/Correlations_IgG_IgA_pv3.png", width = 6, height = 4, dpi = 300)
+  
   
