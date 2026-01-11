@@ -244,7 +244,7 @@ use "Baseline_data_preppedformerge", clear
 *Study samples data:
 *1. Prepping dates file in long
 *N.b. Make sure no space after POL 540 in the excel file
-import excel "Stata code\Polio vaccine study follow up dates.xlsx", sheet("Sheet1") cellrange(A1:D104) firstrow case(lower) clear
+import excel "Polio vaccine study follow up dates.xlsx", sheet("Sheet1") cellrange(A1:D104) firstrow case(lower) clear
 
 rename monthfollowupdateofvisit date2
 rename c date3
@@ -440,7 +440,7 @@ gen ipv_weeks = round(ipv_days / 7, 0.1)
 tabulate ipv_weeks
 summarize ipv_weeks, detail 
 
-drop opv_date bopv6w_date bopv10w_date ipv_date ipv_days age_opv0_days age_opv6_days age_opv10_days age_opv14_days
+drop opv_date bopv6w_date bopv10w_date ipv_date ipv_days age_opv0_days age_opv14_days
 
 **ROTAVIRUS data
 **Looking at the days/months since rotavirus vaccine. 
@@ -505,8 +505,40 @@ use "merged_dataset_long", clear
 //////////////////////////////////////////////
 **# Merging in Ig data
 *Preparing Stool IgA datafile
-	*Tidy up pid values and add sampletype and visit labels
 use "stool_IgA_withlabids_studyvisitmonths.dta", clear
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	}
+	drop if pid==""
+save "stool_IgA", replace
+	*Add in blanks - set all that are equal to or below the blank to half of the lowest non-blank value for that serotype and assay
+import excel "C:\Users\NaomiMiall\Documents\Polio work\Tanzania\Stool_IgA_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
+drop J K L M
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	}
+merge 1:1 pid IPV1 IPV2 IPV3 using "stool_IgA"
+list if _merge==1 
+drop if _merge==1
+drop _merge
+
+foreach x in 1 2 3 {
+	gen IPV`x'_blanks = IPV`x' - PV`x'_Blank //subtract blank
+	tab IPV`x'_blanks if IPV`x'_blanks<=0 //view those at or below blank
+	summ IPV`x'_blanks if IPV`x'_blanks>0, d 
+	scalar IPV`x'_min = r(min) 
+	scalar IPV`x'_half_min = IPV`x'_min/2
+	display IPV`x'_half_min //half of minimum above blank
+	gen PV`x'_IgA_stool_preblanks = IPV`x'_blanks //make a copy to quality check later
+	replace IPV`x'_blanks = IPV`x'_half_min if IPV`x'_blanks<=0
+	list PV`x'_IgA_stool_preblanks IPV`x'_blanks  if PV`x'_IgA_stool_preblanks<=0
+	scalar drop IPV`x'_min IPV`x'_half_min
+}
+
+
+ summ IPV1_blanks IPV2_blanks IPV3_blanks
+save "stool_IgA", replace
+	*Tidy up pid values and add sampletype and visit labels
 replace pid = "POL 482" if pid=="POL. 482"
 replace pid = "POL 282" if pid=="POL 282 "
 drop if pid=="POL 421" //not included in the baseline results / had been dropped from the study
@@ -529,20 +561,48 @@ drop if duplicated==3
 
 	*For samples where IgA was measured twice for same individual and timepoint, take the mean and then transform all to log10 scale.
 foreach x in 1 2 3{
-	destring IPV`x', replace
-	bysort pid visit: egen PV`x'_IgA_stool = mean(IPV`x')
+	bysort pid visit: egen PV`x'_IgA_stool = mean(IPV`x'_blanks)
 	list in 1/10, sepby(pid)
 	list if duplicated>0, sepby(pid)
-	drop IPV`x'
+	drop IPV`x' IPV`x'_blanks  PV`x'_Blank
 	gen logPV`x'_IgA_stool = ln(PV`x'_IgA_stool)/ln(10)
 }
+
 list if duplicated>0, sepby(pid)
 duplicates drop pid visit, force
 list in 1/10, sepby(pid)
 save "longitudinal_stool_IgA", replace
 
+///////////////////////////////////////////////////////
 *preparing Serum IgG file
 use "serum_IgG_1000f_with_labids_studyvisits.dta", clear //Using 1000f dilution rather than 10,000f due to better sensivity (less saturation at the top)
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	}
+save "serum_IgG", replace
+import excel "C:\Users\NaomiMiall\Documents\Polio work\Tanzania\Serum_IgG_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
+drop pid
+foreach x in 1 2 3{
+	destring IPV`x', replace
+	}
+merge 1:1 IPV1 IPV2 IPV3 using "serum_IgG"
+drop _merge
+foreach x in 1 2 3 {
+	gen IPV`x'_blanks = IPV`x' - PV`x'_Blank //subtract blank
+	tab IPV`x'_blanks if IPV`x'_blanks<=0 //view those at or below blank
+	summ IPV`x'_blanks if IPV`x'_blanks>0, d 
+	scalar IPV`x'_min = r(min) 
+	scalar IPV`x'_half_min = IPV`x'_min/2
+	display IPV`x'_half_min //half of minimum above blank
+	gen PV`x'_IgG_serum_preblanks = IPV`x'_blanks //make a copy to quality check later
+	replace IPV`x'_blanks = IPV`x'_half_min if IPV`x'_blanks<=0
+	list PV`x'_IgG_serum_preblanks IPV`x'_blanks  if PV`x'_IgG_serum_preblanks<=0
+	scalar drop IPV`x'_min IPV`x'_half_min
+}
+
+ summ IPV1_blanks IPV2_blanks IPV3_blanks
+save "serum_IgG", replace
+
 replace pid = "POL 482" if pid=="POL. 482"
 tab study_visit_month
 gen sampletype = 2
@@ -562,11 +622,10 @@ sort pid visit
 list if duplicated>0, sepby(pid)
 
 foreach x in 1 2 3{
-	destring IPV`x', replace
-	bysort pid visit: egen PV`x'_IgG_serum  = mean(IPV`x')
+	bysort pid visit: egen PV`x'_IgG_serum  = mean(IPV`x'_blanks)
 	list in 1/10, sepby(pid)
 	list if duplicated>0, sepby(pid)
-	drop IPV`x'
+	drop IPV`x' IPV`x'_blanks PV`x'_Blank
 	gen logPV`x'_IgG_serum = ln(PV`x'_IgG_serum )/ln(10)
 }
 list if duplicated>0, sepby(pid)
@@ -574,9 +633,38 @@ duplicates drop pid visit, force
 list in 1/10, sepby(pid)
 replace pid = "POL 482" if pid=="POL. 482"
 save "longitudinal_serum_IgG", replace
-
+/////////////////////////////////////////////////////////////////////
 *preparing Serum IgA file
 use "serum_IgA_with_labids_studyvisits.dta", clear
+foreach x in 1 2 3{
+	replace IPV`x'="." if IPV`x'=="NaN"
+	destring IPV`x', replace
+	}
+	drop if pid==""
+save "serum_IgA", replace
+import excel "C:\Users\NaomiMiall\Documents\Polio work\Tanzania\Serum_IgA_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
+foreach x in 1 2 3{
+	replace IPV`x'="." if IPV`x'=="NaN"
+	destring IPV`x', replace
+	}
+merge 1:1 pid IPV1 IPV2 IPV3 using "serum_IgA"
+drop _merge
+foreach x in 1 2 3 {
+	gen IPV`x'_blanks = IPV`x' - PV`x'_Blank //subtract blank
+	tab IPV`x'_blanks if IPV`x'_blanks<=0 //view those at or below blank
+	summ IPV`x'_blanks if IPV`x'_blanks>0, d 
+	scalar IPV`x'_min = r(min) 
+	scalar IPV`x'_half_min = IPV`x'_min/2
+	display IPV`x'_half_min //half of minimum above blank
+	gen PV`x'_IgA_serum_preblanks = IPV`x'_blanks //make a copy to quality check later
+	replace IPV`x'_blanks = IPV`x'_half_min if IPV`x'_blanks<=0
+	list PV`x'_IgA_serum_preblanks IPV`x'_blanks  if PV`x'_IgA_serum_preblanks<=0
+	scalar drop IPV`x'_min IPV`x'_half_min
+}
+
+ summ IPV1_blanks IPV2_blanks IPV3_blanks
+ save "serum_IgA", replace
+
 replace pid = "POL 482" if pid=="POL. 482"
 tab study_visit_month
 gen sampletype = 2
@@ -596,12 +684,10 @@ sort pid visit
 list if duplicated>0, sepby(pid)
 
 foreach x in 1 2 3{
-	replace IPV`x'="." if IPV`x'=="NaN"
-	destring IPV`x', replace
-	bysort pid visit: egen PV`x'_IgA_serum  = mean(IPV`x')
+	bysort pid visit: egen PV`x'_IgA_serum  = mean(IPV`x'_blanks)
 	list in 1/10, sepby(pid)
 	list if duplicated>0, sepby(pid)
-	drop IPV`x'
+	drop IPV`x' IPV`x'_blanks PV`x'_Blank
 	gen logPV`x'_IgA_serum = ln(PV`x'_IgA_serum)/ln(10)
 }
 list if duplicated>0, sepby(pid)
@@ -610,6 +696,7 @@ list in 1/10, sepby(pid)
 
 save "longitudinal_serum_IgA", replace
 
+////////////////////////////////////////////////////////////////////
 *Merge all IgA and IgG data
 use "longitudinal_serum_IgA", clear
 merge 1:1 pid visit using "longitudinal_serum_IgG.dta"
@@ -631,4 +718,19 @@ list pid sampletype visit duplicate logPV1* if _merge!=3, sepby(pid)
 drop _merge
 
 save "merged_dataset_long", replace
+use "merged_dataset_long", clear
+
+*Check blanks worked - all OK
+sort pid visit
+list pid visit PV1_IgA_stool PV1_IgA_stool_preblanks if PV1_IgA_stool_preblanks<=0, sepby(pid) //Looks odd for POL 406 visit 1but that is becuase that was a duplicate so it has been averaged with an above blank value
+list pid visit PV2_IgA_stool PV2_IgA_stool_preblanks if PV2_IgA_stool_preblanks<=0, sepby(pid)
+list pid visit PV3_IgA_stool PV3_IgA_stool_preblanks if PV3_IgA_stool_preblanks<=0, sepby(pid) //Looks odd for POL 406 visit 1 but that is becuase that was a duplicate so it has been averaged with an above blank value
+
+list pid visit PV1_IgA_serum PV1_IgA_serum_preblanks if PV1_IgA_serum_preblanks<=0, sepby(pid)
+list pid visit PV2_IgA_serum PV2_IgA_serum_preblanks if PV2_IgA_serum_preblanks<=0, sepby(pid) //Looks odd for POL 408 visit 3 - again due to duplicates 
+list pid visit PV3_IgA_serum PV3_IgA_serum_preblanks if PV3_IgA_serum_preblanks<=0, sepby(pid) 
+
+list pid visit PV1_IgG_serum PV1_IgG_serum_preblanks if PV1_IgG_serum_preblanks<=0, sepby(pid)
+list pid visit PV2_IgG_serum PV2_IgG_serum_preblanks if PV2_IgG_serum_preblanks<=0, sepby(pid)
+list pid visit PV3_IgG_serum PV3_IgG_serum_preblanks if PV3_IgG_serum_preblanks<=0, sepby(pid)
 
