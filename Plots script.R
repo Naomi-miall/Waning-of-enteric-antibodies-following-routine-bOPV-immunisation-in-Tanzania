@@ -83,7 +83,7 @@ m2n <- ggplot(longitudinal, aes(x =follow_up_months, y = logPV2_stool, group = p
   geom_line(data = mean_longitudinal, aes(x = summ_visit_month, y = median_logpv2_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_longitudinal, aes(x = summ_visit_month, y = median_logpv2_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(1,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
@@ -115,7 +115,7 @@ mean_highpv1baseline <- highpv1baseline %>%
             uq_logpv1_serum_IgG = quantile(logPV1_IgG_serum, 0.75, na.rm = TRUE),
             )
 
-
+#Stool PV1 neuts high baseline
 m1nhb <- ggplot(highpv1baseline, aes(x = follow_up_months, y = logPV1_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_hline(yintercept = 3, linetype = "dashed") +
@@ -123,24 +123,25 @@ m1nhb <- ggplot(highpv1baseline, aes(x = follow_up_months, y = logPV1_stool, gro
   geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0, 7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 m1nhb
 ggsave("Figures/Stool_PV1_Neuts_highbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
 
-
+#Stool PV1 IgA high baseline
 m1igahb <- ggplot(highpv1baseline, aes(x = follow_up_months, y = logPV1_IgA_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_stool_IgA, ymax = uq_logpv1_stool_IgA), fill = "#725AC1", alpha = 0.15, inherit.aes = FALSE) +
   geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool_IgA), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool_IgA), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 18),
@@ -148,7 +149,7 @@ m1igahb <- ggplot(highpv1baseline, aes(x = follow_up_months, y = logPV1_IgA_stoo
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 m1igahb
-ggsave("Figures/Stool_PV1_IgA_highbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
+ggsave("Figures/Stool_PV1_IgA_highbaseline_all_medians.png", width = 6, height = 8, dpi = 300)
 
 
 #Low PV1 baseline full sample
@@ -173,6 +174,7 @@ mean_lowpv1baseline <- lowpv1baseline %>%
             uq_logpv1_serum_IgG = quantile(logPV1_IgG_serum, 0.75, na.rm = TRUE),
   )
 
+#Stool PV1 neuts low baseline
 m1nlb <- ggplot(lowpv1baseline, aes(x = follow_up_months, y = logPV1_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_hline(yintercept = 3, linetype = "dashed") +
@@ -180,24 +182,25 @@ m1nlb <- ggplot(lowpv1baseline, aes(x = follow_up_months, y = logPV1_stool, grou
   geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 m1nlb
 ggsave("Figures/Stool_PV1_Neuts_lowbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
 
-
+#Stool PV1 IgA low baseline
 m1igalb <- ggplot(lowpv1baseline, aes(x = follow_up_months, y = logPV1_IgA_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_stool_IgA, ymax = uq_logpv1_stool_IgA), fill = "#725AC1", alpha = 0.15, inherit.aes = FALSE) +
   geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool_IgA), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool_IgA), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 18),
@@ -205,7 +208,7 @@ m1igalb <- ggplot(lowpv1baseline, aes(x = follow_up_months, y = logPV1_IgA_stool
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 m1igalb
-ggsave("Figures/Stool_PV1_IgA_lowbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
+ggsave("Figures/Stool_PV1_IgA_lowbaseline_all_medians.png", width = 6, height = 8, dpi = 300)
 
 
 
@@ -232,6 +235,7 @@ mean_highpv3baseline <- highpv3baseline %>%
   )
 
 
+#Stool PV3 neuts high baseline
 m3nhb <- ggplot(highpv3baseline, aes(x = follow_up_months, y = logPV3_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_hline(yintercept = 3, linetype = "dashed") +
@@ -239,23 +243,25 @@ m3nhb <- ggplot(highpv3baseline, aes(x = follow_up_months, y = logPV3_stool, gro
   geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        # axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 ggsave("Figures/Stool_PV3_Neuts_highbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
 m3nhb 
 
+#Stool PV3 IgA high baseline
 m3igahb <- ggplot(highpv3baseline, aes(x = follow_up_months, y  = logPV3_IgA_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_stool_IgA, ymax = uq_logpv3_stool_IgA), fill = "#725AC1", alpha = 0.15, inherit.aes = FALSE) +
   geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool_IgA), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool_IgA), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 18),
@@ -263,7 +269,7 @@ m3igahb <- ggplot(highpv3baseline, aes(x = follow_up_months, y  = logPV3_IgA_sto
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 m3igahb
-ggsave("Figures/Stool_PV3_IgA_highbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
+ggsave("Figures/Stool_PV3_IgA_highbaseline_all_medians.png", width = 6, height = 8, dpi = 300)
 
 
 #Low PV3 baseline full sample
@@ -288,6 +294,7 @@ mean_lowpv3baseline <- lowpv3baseline %>%
             uq_logpv3_serum_IgG = quantile(logPV3_IgG_serum, 0.75, na.rm = TRUE),
   )
 
+#Stool PV3 neuts low baseline
 m3nlb <- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) +
   geom_point(alpha = 0.1) +
@@ -296,23 +303,25 @@ m3nlb <- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_stool, group
   geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
+m3nlb
 ggsave("Figures/Stool_PV3_Neuts_lowbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
-m3nlb 
 
+#Stool PV3 IgA low baseline
 m3igalb <- ggplot(lowpv3baseline, aes(x = follow_up_months, y = logPV3_IgA_stool, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) + geom_point(alpha = 0.1) +
   geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_stool_IgA, ymax = uq_logpv3_stool_IgA), fill = "#725AC1", alpha = 0.15, inherit.aes = FALSE) +
   geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool_IgA), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool_IgA), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 18),
@@ -320,11 +329,267 @@ m3igalb <- ggplot(lowpv3baseline, aes(x = follow_up_months, y = logPV3_IgA_stool
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 m3igalb
-ggsave("Figures/Stool_PV3_IgA_lowbaseline_all_medians.png", width = 6, height = 4, dpi = 300)
+ggsave("Figures/Stool_PV3_IgA_lowbaseline_all_medians.png", width = 6, height = 8, dpi = 300)
+
+#################################################################################
+#################################################################################
+## Serum neutr plot: Spagetti plots
+
+#All participants unstratified for PV2
+s2n <- ggplot(longitudinal, aes(x =follow_up_months, y = logPV2_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +  
+  geom_hline(yintercept = 3, linetype = "dashed")+
+  geom_ribbon(data = mean_longitudinal, aes(x = summ_visit_month, ymin = lq_logpv2_serum, ymax = uq_logpv2_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_longitudinal, aes(x = summ_visit_month, y = median_logpv2_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_longitudinal, aes(x = summ_visit_month, y = median_logpv2_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV2_all_median.png", width = 6, height = 4, dpi = 300)
+s2n
+
+
+#Serum PV1 neuts high baseline
+s1nhb<- ggplot(highpv1baseline, aes(x =follow_up_months, y = logPV1_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_hline(yintercept = 3, linetype = "dashed")+
+  geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum, ymax = uq_logpv1_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV1_Neuts_highbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
+s1nhb 
+
+#Serum PV1 IgA high baseline
+s1igahb<- ggplot(highpv1baseline, aes(x =follow_up_months, y = logPV1_IgA_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgA, ymax = uq_logpv1_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV1_IgA_highbaseline_all_medians.png", width = 6.3, height = 8, dpi = 300)
+s1igahb 
+
+#Serum PV1 IgG high baseline
+s1igghb<- ggplot(highpv1baseline, aes(x =follow_up_months, y = logPV1_IgG_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgG, ymax = uq_logpv1_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV1_IgG_highbaseline_all_medians.png", width = 6.3, height = 9, dpi = 300)
+s1igghb
+
+#Serum PV1 neuts low baseline
+s1nlb<- ggplot(lowpv1baseline, aes(x =follow_up_months, y = logPV1_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_hline(yintercept = 3, linetype = "dashed")+
+  geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum, ymax = uq_logpv1_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), color = "#BC3908",  inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV1_Neuts_lowbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
+s1nlb
+
+
+#Serum PV1 IgA low baseline
+s1igalb<- ggplot(lowpv1baseline, aes(x =follow_up_months, y = logPV1_IgA_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgA, ymax = uq_logpv1_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV1_IgA_lowbaseline_all_medians.png", width = 6.3, height = 8, dpi = 300)
+s1igalb 
+
+
+
+#Serum PV1 IgG low baseline
+s1igglb<- ggplot(lowpv1baseline, aes(x =follow_up_months, y = logPV1_IgG_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgG, ymax = uq_logpv1_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV1_IgG_lowbaseline_all_medians.png", width = 6.3, height = 9, dpi = 300)
+s1igglb
+
+
+#Serum PV3 neuts high baseline
+s3nhb<- ggplot(highpv3baseline, aes(x =follow_up_months, y = logPV3_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_hline(yintercept = 3, linetype = "dashed")+
+  geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum, ymax = uq_logpv3_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV3_Neuts_highbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
+s3nhb
+
+#Serum PV3 IgA high baseline
+s3igahb<- ggplot(highpv3baseline, aes(x =follow_up_months, y = logPV3_IgA_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgA, ymax = uq_logpv3_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV3_IgA_highbaseline_all_medians.png", width = 6.3, height = 8, dpi = 300)
+s3igahb 
+
+
+#Serum PV3 IgG high baseline
+s3igghb<- ggplot(highpv3baseline, aes(x =follow_up_months, y = logPV3_IgG_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgG, ymax = uq_logpv3_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV3_IgG_highbaseline_all_medians.png", width = 6.3, height = 9, dpi = 300)
+s3igghb
+
+#Serum PV3 neuts low baseline
+s3nlb<- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_hline(yintercept = 3, linetype = "dashed")+
+  geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum, ymax = uq_logpv3_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV3_Neuts_lowbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
+s3nlb
+
+#Serum PV3 IgA low baseline
+s3igalb<- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_IgA_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgA, ymax = uq_logpv3_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV3_IgA_lowbaseline_all_medians.png", width = 6.3, height = 8, dpi = 300)
+s3igalb 
+
+#Serum PV3 IgG low baseline
+s3igglb<- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_IgG_serum, group = pid)) +
+  geom_line(alpha = 0.5, size = 0.2) +
+  geom_point(alpha = 0.1) +
+  geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgG, ymax = uq_logpv3_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
+  geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
+  geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
+  scale_y_continuous(breaks = c(0:4), limits = c(-1,4)) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"))
+ggsave("Figures/Serum_PV3_IgG_lowbaseline_all_medians.png", width = 6.3, height = 9, dpi = 300)
+s3igglb
 
 
 #####################################################################################
-#Stool neut plots for complete data:
+#####################################################################################
+#####################################################################################
+#Complete data:
+#Stool neuts plots
 
 #High PV1 baseline, complete data
 mean_completedata_highpv1baseline <- completedata_highpv1baseline %>%
@@ -347,15 +612,16 @@ m1nchb <-ggplot(completedata_highpv1baseline, aes(x =follow_up_months, y = logPV
   geom_line(data = mean_completedata_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
+m1nchb
 ggsave("Figures/Complete data/Stool_PV1_Neuts_highbaseline_completedata_medians.png", width = 6.3, height = 5.6, dpi = 300)
-m1nchb 
 
 #Low PV1 baseline, complete data
 mean_completedata_lowpv1baseline <- completedata_lowpv1baseline %>%
@@ -378,15 +644,16 @@ m1nclb <-ggplot(completedata_lowpv1baseline, aes(x =follow_up_months, y = logPV1
   geom_line(data = mean_completedata_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
-ggsave("Figures/Complete data/Stool_PV1_Neuts_lowbaseline_completedata_medians.png", width = 6.3, height = 5.6, dpi = 300)
 m1nclb
+ggsave("Figures/Complete data/Stool_PV1_Neuts_lowbaseline_completedata_medians.png", width = 6.3, height = 5.6, dpi = 300)
 
 
 #High PV3 baseline, complete data
@@ -409,11 +676,12 @@ m3nchb <-ggplot(completedata_highpv3baseline , aes(x =follow_up_months, y = logP
   geom_line(data = mean_completedata_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 ggsave("Figures/Complete data/Stool_PV3_Neuts_highbaseline_completedata_medians.png", width = 6.3, height = 5.6, dpi = 300)
@@ -440,261 +708,18 @@ m3nclb <-ggplot(completedata_lowpv3baseline , aes(x =follow_up_months, y = logPV
   geom_line(data = mean_completedata_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), color = "#725AC1", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_stool), shape = 17, size = 2, color = "#725AC1", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        #axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"))
 ggsave("Figures/Complete data/Stool_PV3_Neuts_lowbaseline_completedata_medians.png", width = 6.3, height = 5.6, dpi = 300)
 m3nclb
 
-#################################################################################
-#################################################################################
-## Serum neutr plot: Spagetti plots
-
-#All participants unstratified for PV2
-s2n <- ggplot(longitudinal, aes(x =follow_up_months, y = logPV2_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +  
-  geom_hline(yintercept = 3, linetype = "dashed")+
-  geom_ribbon(data = mean_longitudinal, aes(x = summ_visit_month, ymin = lq_logpv2_serum, ymax = uq_logpv2_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_longitudinal, aes(x = summ_visit_month, y = median_logpv2_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_longitudinal, aes(x = summ_visit_month, y = median_logpv2_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV2_all_median.png", width = 6, height = 4, dpi = 300)
-s2n
-
-
-#High baseline pv1 - all
-s1nhb<- ggplot(highpv1baseline, aes(x =follow_up_months, y = logPV1_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_hline(yintercept = 3, linetype = "dashed")+
-  geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum, ymax = uq_logpv1_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV1_Neuts_highbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s1nhb 
-
-s1igahb<- ggplot(highpv1baseline, aes(x =follow_up_months, y = logPV1_IgA_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgA, ymax = uq_logpv1_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV1_IgA_highbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s1igahb 
-
-
-s1igghb<- ggplot(highpv1baseline, aes(x =follow_up_months, y = logPV1_IgG_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_highpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgG, ymax = uq_logpv1_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV1_IgG_highbaseline_all_medians.png", width = 6.3, height = 5.6, dpi = 300)
-s1igghb
-
-
-s1nlb<- ggplot(lowpv1baseline, aes(x =follow_up_months, y = logPV1_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_hline(yintercept = 3, linetype = "dashed")+
-  geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum, ymax = uq_logpv1_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), color = "#BC3908",  inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV1_Neuts_lowbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s1nlb
-
-s1igalb<- ggplot(lowpv1baseline, aes(x =follow_up_months, y = logPV1_IgA_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgA, ymax = uq_logpv1_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV1_IgA_lowbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s1igalb 
-
-
-s1igglb<- ggplot(lowpv1baseline, aes(x =follow_up_months, y = logPV1_IgG_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_lowpv1baseline, aes(x = summ_visit_month, ymin = lq_logpv1_serum_IgG, ymax = uq_logpv1_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV1_IgG_lowbaseline_all_medians.png", width = 6.3, height = 5.6, dpi = 300)
-s1igglb
-
-
-s3nhb<- ggplot(highpv3baseline, aes(x =follow_up_months, y = logPV3_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_hline(yintercept = 3, linetype = "dashed")+
-  geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum, ymax = uq_logpv3_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV3_Neuts_highbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s3nhb
-
-s3igahb<- ggplot(highpv3baseline, aes(x =follow_up_months, y = logPV3_IgA_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgA, ymax = uq_logpv3_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV3_IgA_highbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s3igahb 
-
-
-s3igghb<- ggplot(highpv3baseline, aes(x =follow_up_months, y = logPV3_IgG_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_highpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgG, ymax = uq_logpv3_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV3_IgG_highbaseline_all_medians.png", width = 6.3, height = 5.6, dpi = 300)
-s3igghb
-
-
-
-s3nlb<- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_hline(yintercept = 3, linetype = "dashed")+
-  geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum, ymax = uq_logpv3_serum), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV3_Neuts_lowbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s3nlb
-
-s3igalb<- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_IgA_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgA, ymax = uq_logpv3_serum_IgA), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgA), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV3_IgA_lowbaseline_all_medians.png", width = 6.3, height = 4, dpi = 300)
-s3igalb 
-
-
-s3igglb<- ggplot(lowpv3baseline, aes(x =follow_up_months, y = logPV3_IgG_serum, group = pid)) +
-  geom_line(alpha = 0.5, size = 0.2) +
-  geom_point(alpha = 0.1) +
-  geom_ribbon(data = mean_lowpv3baseline, aes(x = summ_visit_month, ymin = lq_logpv3_serum_IgG, ymax = uq_logpv3_serum_IgG), fill = "#BC3908", alpha = 0.15, inherit.aes = FALSE) +
-  geom_line(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), color = "#BC3908", inherit.aes = FALSE, size=1) +
-  geom_point(data = mean_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum_IgG), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
-  scale_y_continuous(breaks = c(1:4), limits = c(1.5,4)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text = element_text(size = 18),
-        axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"))
-ggsave("Figures/Serum_PV3_IgG_lowbaseline_all_medians.png", width = 6.3, height = 5.6, dpi = 300)
-s3igglb
-
-
-
-
-#complete data participants neuts stratified by mucosal neut baseline
+#serum neuts plots for complete data stratified by mucosal neut baseline
 
 s1nchb<- ggplot(completedata_highpv1baseline, aes(x =follow_up_months, y = logPV1_serum, group = pid)) +
   geom_line(alpha = 0.5, size = 0.2) +
@@ -704,7 +729,7 @@ s1nchb<- ggplot(completedata_highpv1baseline, aes(x =follow_up_months, y = logPV
   geom_line(data = mean_completedata_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_highpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
@@ -722,7 +747,7 @@ s1nclb<- ggplot(completedata_lowpv1baseline, aes(x =follow_up_months, y = logPV1
   geom_line(data = mean_completedata_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_lowpv1baseline, aes(x = summ_visit_month, y = median_logpv1_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
@@ -740,7 +765,7 @@ s3nchb<- ggplot(completedata_highpv3baseline, aes(x =follow_up_months, y = logPV
   geom_line(data = mean_completedata_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_highpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
@@ -759,7 +784,7 @@ s3nclb<- ggplot(completedata_lowpv3baseline, aes(x =follow_up_months, y = logPV3
   geom_line(data = mean_completedata_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), color = "#BC3908", inherit.aes = FALSE, size=1) +
   geom_point(data = mean_completedata_lowpv3baseline, aes(x = summ_visit_month, y = median_logpv3_serum), shape = 17, size = 2, color = "#BC3908", inherit.aes = FALSE) +
   scale_y_continuous(breaks = c(1, 3, 5, 7, 9, 11, 13), limits = c(1,14)) +
-  scale_x_continuous(breaks = c(0, 1, 3, 6), labels=visit_labels) +
+  scale_x_continuous(breaks = c(0, 1, 3, 6), limits = c(0,7.4), labels=visit_labels) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 18),
