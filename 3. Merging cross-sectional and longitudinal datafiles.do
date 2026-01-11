@@ -8,21 +8,8 @@ set more off
 *Filepath for Naomi:
 cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
 ///////////////////////////////////////////////////////////////
-
-*Append cross-sectional
-use "AIM 1 dataset_merged_eedata_December102025.dta", clear //Longitudinal dataset with EE matched-in
-
-//Drop participant from EE data who was excluded from final study
-keep if visit==1
-merge 1:1 pid using "longitudinal_pid_lookup.dta"
-list pid visit if _merge==1 //This dataset includes POL 421 which was previously missing
-list pid visit pv1_stool_positive logPV1_stool PV1_IgA_stool if pid=="POL 421"
-use "AIM 1 dataset_merged_eedata_December102025.dta", clear
-drop if pid=="POL 421" 
-
-//Append cross-sectional
-append using cross-sectional_clean
-
+use "merged_dataset_long", clear
+append using "cross-sectional_clean"
 foreach x in 1 2 3 {
 	replace  pv`x'_serum = pv`x'neuttiterserum if sampletype==2
 	drop pv`x'neuttiterserum
@@ -73,7 +60,23 @@ replace pv1_stool_responses_exclbl = pv1_stool_positive if sampletype==1
 replace pv3_stool_responses = pv3_stool_positive if sampletype==1
 replace pv3_stool_responses_exclbl = pv3_stool_positive if sampletype==1
 
-save "Both_datasets_long_ee", replace
-use "Both_datasets_long_ee", clear
+save "Both_datasets_long", replace
+use "Both_datasets_long", clear
 
+//////////////////////////////////////////////////////////////////////////
+*Merge in EE data
+use "AIM 1 dataset_merged_eedata_December102025.dta", clear //Longitudinal dataset with EE matched-in
+recode EE_score 0/6=0 7/10=1, gen(EE_bin)
+tab EE_bin
+summ concentration_NPO concentration_MPO concentration_AAT, d
+keep pid visit EE_bin EE_score concentration_NPO concentration_MPO concentration_AAT
+keep if visit==1
+save "EE_lookup", replace
+use "Both_datasets_long", clear
+merge m:1 pid using "EE_lookup"
+tab sampletype _merge, m
+tab pid if _merge==2 //The EE dataset includes POL 421 who was later excluded
+drop if _merge==2 
+drop _merge
 
+save "Both_datasets_long", replace
