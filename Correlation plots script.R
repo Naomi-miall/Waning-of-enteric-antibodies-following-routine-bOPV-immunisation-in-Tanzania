@@ -1,7 +1,4 @@
-###R script creating box plots for TZA duration of immunity paper
-#Naomi and Alex
-#October 2025
-
+*Correlations scatter plots
 #Set up: Libaries; working directory; theme:
 ### scatter plot ####
 setwd ("C:/Users/NaomiMiall/Documents/Polio work/Tanzania")
@@ -307,3 +304,4 @@ ggsave("Figures/Correlations_pv1_sample.png", width = 6, height = 4, dpi = 300)
   ggsave("Figures/Correlations_IgG_IgA_pv3.png", width = 6, height = 4, dpi = 300)
   
   
+
