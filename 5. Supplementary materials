@@ -14,7 +14,7 @@ cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
 
 //////////////////////////////////////////////////////////////
 **# Supplement 1 - FLow diagram for longitudinal cohort
-use "merged_dataset_long", clear
+use "Both_datasets_long", clear
 tab visit
 keep if visit==1
 count if one_month==0 & three_months==0 & six_months==0 //13 lost after first visit
@@ -30,7 +30,8 @@ count if one_month==1 & three_months==1 & six_months==0 //8
 count if one_month==0 & three_months==1 & six_months==0  //0 so 8 dropped out after visit 3
 
 *Number non-missing at each-timepoint
-use "merged_dataset_long", clear
+use "Both_datasets_long", clear
+keep if sampletype==2
 tab pv1_stool_positive if visit==1, m
 tab pv1_stool_positive if visit==2, m
 tab pv1_stool_positive if visit==3, m
@@ -39,7 +40,8 @@ tab pv1_stool_positive if visit==4, m
 //////////////////////////////////////////////////////////////
 **# Supplement 2 & 4 
 *Supplement 2 - Stool: Medians and IQRs for each outcome: Longitudinal cohort
-use "merged_dataset_long", clear
+use "Both_datasets_long", clear
+keep if sampletype==2
 	rename logPV1_stool logPV1_neut_stool
 	rename logPV1_serum logPV1_neut_serum
 	rename logPV3_stool logPV3_neut_stool
@@ -52,50 +54,51 @@ testparm i.visit
 quietly melogit pv3_stool_positive i.visit || pid:
 testparm i.visit
 
-tabstat logPV1_neut_stool, statistics(median p25 p75) by(visit)
-tabstat logPV3_neut_stool, statistics(median p25 p75) by(visit)
+tabstat logPV1_neut_stool, statistics(median p25 p75 n) by(visit)
+tabstat logPV3_neut_stool, statistics(median p25 p75 n) by(visit)
 quietly mixed logPV1_neut_stool i.visit || pid:
 testparm i.visit
 quietly mixed logPV3_neut_stool i.visit || pid:
 testparm i.visit
 
-tabstat logPV1_IgA_stool, statistics(median p25 p75) by(visit)
-tabstat logPV3_IgA_stool, statistics(median p25 p75) by(visit)
+tabstat logPV1_IgA_stool, statistics(median p25 p75 n) by(visit)
+tabstat logPV3_IgA_stool, statistics(median p25 p75 n) by(visit)
 quietly mixed logPV1_IgA_stool i.visit || pid:
 testparm i.visit
 quietly mixed logPV3_IgA_stool i.visit || pid:
 testparm i.visit
 
 * Supplement 4 - Serum: Medians and IQRs for each outcome: Longitudinal cohort
-use "merged_dataset_long", clear
+use "Both_datasets_long", clear
+keep if sampletype==2
 	rename logPV1_stool logPV1_neut_stool
 	rename logPV1_serum logPV1_neut_serum
 	rename logPV3_stool logPV3_neut_stool
 	rename logPV3_serum logPV3_neut_serum
 
-tabstat logPV1_neut_serum, statistics(median p25 p75) by(visit)
-tabstat logPV3_neut_serum, statistics(median p25 p75) by(visit)
+tabstat logPV1_neut_serum, statistics(median p25 p75 n) by(visit)
+tabstat logPV3_neut_serum, statistics(median p25 p75 n) by(visit)
 quietly mixed logPV1_neut_serum i.visit || pid:
 testparm i.visit
 quietly mixed logPV3_neut_serum i.visit || pid:
 testparm i.visit
 
-tabstat logPV1_IgA_serum, statistics(median p25 p75) by(visit)
-tabstat logPV3_IgA_serum, statistics(median p25 p75) by(visit)
+tabstat logPV1_IgA_serum, statistics(median p25 p75 n) by(visit)
+tabstat logPV3_IgA_serum, statistics(median p25 p75 n) by(visit)
 quietly mixed logPV1_IgA_serum i.visit || pid:
 testparm i.visit
 quietly mixed logPV3_IgA_serum i.visit || pid:
 testparm i.visit
 
-tabstat logPV1_IgG_serum, statistics(median p25 p75) by(visit)
-tabstat logPV3_IgG_serum, statistics(median p25 p75) by(visit)
+tabstat logPV1_IgG_serum, statistics(median p25 p75 n) by(visit)
+tabstat logPV3_IgG_serum, statistics(median p25 p75 n) by(visit)
 quietly mixed logPV1_IgG_serum i.visit || pid:
 testparm i.visit
 quietly mixed logPV3_IgG_serum i.visit || pid:
 testparm i.visit
 
 *Supplement 2 & 4: Cross-sectional cohort
-use "Both_datasets_long_ee", clear
+use "Both_datasets_long", clear
 keep if sampletype==1 
 summarize logPV1_stool, detail
 summarize logPV2_stool, detail
@@ -127,7 +130,7 @@ use results_ST4.dta, clear
 export excel using "supplementary table 4.xlsx", replace
 
 *P-values over time for cross-sectional cohort
-use "Both_datasets_long_ee", clear
+use "Both_datasets_long", clear
 keep if sampletype==1 
 foreach x in 1 2 3 {
 	rename logPV`x'_stool logPV`x'_neut_stool
@@ -150,8 +153,8 @@ testparm i.visit
 }
 
 *For both cohorts: comparison of PV1 and PV3 across time-points: p-values
-use "Both_datasets_long_ee", clear
-gen difference = logPV3_stool - logPV1_stool
+use "Both_datasets_long", clear
+/*gen difference = logPV3_stool - logPV1_stool
 histogram difference, normal 
 qnorm difference
 
@@ -159,8 +162,27 @@ mcc pv1_stool_positive pv3_stool_positive
 signrank logPV1_stool = logPV3_stool
 signrank logPV1_IgA_stool = logPV3_IgA_stool
 signrank logPV1_serum = logPV3_serum
+
+table, statistic(median logPV1_IgA_serum) statistic(q1 logPV1_IgA_serum) statistic(q3 logPV1_IgA_serum) statistic(median logPV3_IgA_serum) statistic(q1 logPV3_IgA_serum) statistic(q3 logPV3_IgA_serum)
 signrank logPV1_IgA_serum = logPV3_IgA_serum
+
+table, statistic(median logPV1_IgG_serum) statistic(q1 logPV1_IgG_serum) statistic(q3 logPV1_IgG_serum) statistic(median logPV3_IgG_serum) statistic(q1 logPV3_IgG_serum) statistic(q3 logPV3_IgG_serum)
 signrank logPV1_IgG_serum = logPV3_IgG_serum
+
+*/
+use "Both_datasets_long", clear
+gen difference_stool_neut = logPV1_stool - logPV3_stool
+mixed difference_stool_neut || pid:
+gen difference_stool_IgA = logPV1_IgA_stool - logPV3_IgA_stool
+mixed difference_stool_IgA || pid:
+gen difference_serum_neut = logPV1_serum - logPV3_serum
+mixed difference_serum_neut || pid:
+gen difference_serum_IgA = logPV1_IgA_serum - logPV3_IgA_serum
+mixed difference_serum_IgA || pid:
+gen difference_serum_IgG = logPV1_IgG_serum - logPV3_IgG_serum
+mixed difference_serum_IgG || pid:
+*For difference in PV1 vs PV3 stool neutralisation: see R code script using the Obuchowski method
+
 
 
 /*Average outcomes across the two cohorts - not currently reported
@@ -187,7 +209,7 @@ use "Both_datasets_long_ee", clear
 //////////////////////////////////////////////////////////////
 **# Supplement 3 - Half-lives
 *Linear regression for PV1 between 1 month and 6 months
-use "both_datasets_long_ee", clear
+use "both_datasets_long", clear
 keep if visit<5 
 mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
  display 1/ _b[follow_up_months]
@@ -200,7 +222,7 @@ display 1/ .6871491
 display 1/ .485025
 
 *Cross sectional
-use "both_datasets_long_ee", clear
+use "both_datasets_long", clear
 keep if sampletype==1 & visit<5
 regress logPV1_stool follow_up_months age_opv14_weeks
  display 1/ _b[follow_up_months]
@@ -219,16 +241,16 @@ display 1/ (`b' - (`t' * `se'))
 display 1/ (`b' + (`t' * `se'))
 
 //Longitudinal
-use "merged_dataset_long", clear
-keep if visit>1
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
 mixed logPV1_stool c.follow_up_months##high_neut_baseline_pv1 age_opv14_weeks || pid: //interaction term high p-value (>0.5) so will not stratify by baseline neut
 mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
 display 1/ _b[follow_up_months]
 display 1/  -.3862435
 display 1/  -.2003813
  
-use "merged_dataset_long", clear
-keep if visit>1 
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
 mixed logPV3_stool c.follow_up_months##high_neut_baseline_pv3 age_opv14_weeks || pid: //again interaction term high p-value (0.11) so will not stratify by baseline neut
 mixed logPV3_stool c.follow_up_months age_opv14_weeks || pid:
 display 1/ _b[follow_up_months]
@@ -238,32 +260,40 @@ display 1/   -.440761
 
 //////////////////////////////////////////////////////////////
 **# Supplement 5 - Correlations
-use "Both_datasets_long_ee", clear
+use "Both_datasets_long", clear
 *using month 1 for longitudinal:
 keep if sampletype==1 | visit==2
 tab visit sampletype
-save "correlations_dataset_ee", replace
+save "correlations_dataset", replace
 
+*Kendall's correlations (adjusts for many ties better than Spearman's)
+use "correlations_dataset", clear
+ktau logPV1_stool logPV1_serum
+ktau logPV3_stool logPV3_serum
+ktau logPV1_stool logPV3_stool
+ktau logPV1_serum logPV3_serum
+ktau logPV1_stool logPV1_IgA_stool
+ktau logPV3_stool logPV3_IgA_stool
+ktau logPV1_serum logPV1_IgA_serum
+ktau logPV3_serum logPV3_IgA_serum
+ktau logPV1_serum logPV1_IgG_serum
+ktau logPV3_serum logPV3_IgG_serum
+ktau logPV1_IgA_serum logPV1_IgG_serum
+ktau logPV3_IgA_serum logPV3_IgG_serum
 //////////////////////////////////////////////////////////////
 **# Supplement 6 - Comparing full longitudinal cohort to those with complete data
 *Supplementarty table 6.1: Compare demographics for those with complete data vs full-sample
-use "merged_dataset_long", clear
+use "Both_datasets_long", clear
 keep if no_obs==4 & visit==1
-tab1  femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus
-summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10, d
+tab1  femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus EE_bin
+summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10 concentration_NPO concentration_MPO concentration_AAT, d
 summ caa_concentration if coinfect_caa==1, d
-use "merged_dataset_long", clear
-
-use "AIM 1 dataset_merged_eedata_December102025.dta", clear
-keep if no_obs==4 & visit==1
-recode EE_score 0/6=0 7/10=1, gen(EE_bin)
-tab EE_bin
-summ concentration_NPO concentration_MPO concentration_AAT, d
+use "Both_datasets_long", clear
 
 //////////////////////////////////////////////////////////////
 **# Supplement 7 - Forrest plot using detectable
 *Detectable for sensitivity analysis
-use "Both_datasets_long_ee", clear
+use "Both_datasets_long", clear
 keep if sampletype==2
 bysort pid: egen pv1_any_detect_stool = max(pv1_stool_detectable)
 bysort pid: egen pv3_any_detect_stool = max(pv3_stool_detectable)
@@ -322,7 +352,7 @@ save "Forest_plot_detect_ee", replace
 
 //////////////////////////////////////////////////////////////
 **# Supplement 8 - Type 2 box plots
-use "Both_datasets_long_ee", clear
+use "Both_datasets_long", clear
 keep pid visit sampletype logPV*
 
 rename logPV2_stool logPV1
@@ -336,9 +366,9 @@ sort pid assay
 label define assay 1 "PV2 stool neut" 2 "PV2 serum neut" 3 "PV2 stool IgA" 4 "PV2 serum IgA" 5 "PV2 serum IgG"
 label values assay assay
 list pid visit sampletype assay logPV in 1/20, sepby(pid)
-save "box_plots_PV2_ee", replace
+save "box_plots_PV2", replace
 
-use "Both_datasets_long_ee", clear
+use "Both_datasets_long", clear
 gen pv2_bin = logPV2_stool
 recode pv2_bin 1/3=0 3/10=1
 //positive PV2 by visit and stratified by cohort
@@ -351,6 +381,4 @@ tab pv2_max_bin if visit==1 | sampletype==1
 tab visit pv2_max_bin, row
 //Serum PV2 at month 1
 tabstat logPV2_serum if visit==2, statistics(median p25 p75) by(sampletype)
-
-
 
