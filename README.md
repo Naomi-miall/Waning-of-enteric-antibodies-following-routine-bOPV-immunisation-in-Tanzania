@@ -40,7 +40,7 @@ R file_Fig 2 Box plots script.R
       -> Uses Box_plots.dta to create a box plot for neut, IgA, and IgG titers for PV1 and PV3 (main text - saved as Figure 1.png) and PV2 (supplement - saved as Figure 1.2_PV2.png) in stool and serum, stratified by timepoint and study group.
 
 R file_Fig 3 Plots script.R
-      ->Serotype specific spagetti plots for neut, IgA, and IgG titers in stool and serum among the longitudinal sample, stratified by positive or negative baseline stool neutralisation titer in stool for the homotypic serotype.
+      ->Uses merged_dataset_long.dta serotype specific spagetti plots for neut, IgA, and IgG titers in stool and serum among the longitudinal sample, stratified by positive or negative baseline stool neutralisation titer in stool for the homotypic serotype.
 
 R file_Fig 4 Forest plots script.R
       -> Uses Forest_plot_2_ee.dta to generate forest plot for associations between positive PV1 and PV3 neutralsiation in stool with co-infection and nutrition variables.
