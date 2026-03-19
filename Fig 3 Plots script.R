@@ -4,7 +4,7 @@
 
 #Set up: Libaries; working directory; theme:
 ### scatter plot ####
-setwd ("C:/Users/NaomiMiall/Documents/Polio work/Tanzania")
+setwd ("C:/Users/_________________________________________")
 
 ## library
 library(haven)
