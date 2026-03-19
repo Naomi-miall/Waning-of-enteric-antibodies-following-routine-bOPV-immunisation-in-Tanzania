@@ -37,4 +37,6 @@ Do file 6_Total IgA analysis
 
 
 R file_Fig 2 Box plots script.R
-      ->
+      -> Uses Box_plots.dta to create a box plot for neut, IgA and IgG titers for PV1 and PV3 (main text - saved as Figure 1.png) and PV2 (supplement - saved as Figure 1.2_PV2.png) in stool and serum, stratified by timepoint and study group.
+
+
