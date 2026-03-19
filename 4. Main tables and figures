@@ -1,82 +1,169 @@
 /* Duration of polio antibody responses following bOPV vaccination in Tanzania.
-  Alexandra Codeiro and Naomi Miall
   September 2025
 */
+
+*SET UP
 clear
 set more off
 
-*Filepath for Naomi:
-cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
 ///////////////////////////////////////////////////////////////
-use "merged_dataset_long", clear
-append using "cross-sectional_clean"
+*Creating a dataset for the any_infections 
+use "Both_datasets_long", clear
+keep if visit==2 & any_infection!=.
+
+rename logPV1_stool logPV_1
+rename logPV3_stool logPV_2
+rename logPV1_serum logPV_3
+rename logPV3_serum logPV_4
+
+reshape long logPV_, i(pid) j(assay)
+sort pid assay
+label define assay 1 "PV1 stool" 2"PV3 stool" 3"PV1 serum" 4"PV3 serum"
+label values assay assay
+list pid visit sampletype assay logPV_ in 1/20, sepby(pid)
+
+save "infections_dataset", replace
+
+
+/////////////////////////////////////////////////////////////
+**# Table 1
+*Longitudinal
+use "Both_datasets_long", clear
+keep if visit==1
+tab1 femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus EE_bin
+summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10 concentration_NPO concentration_MPO concentration_AAT, d
+summ caa_concentration if coinfect_caa==1, d
+
+*Cross-sectional
+use "Both_datasets_long", clear
+keep if sampletype==1
+tab1 femalesex complete_edu_adult delay_bopv0 bf_4months bw_bucket stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure HIV_status_of_child coinfect_parasite coinfect_caa ipv_bin rota_bin
+summ ageweek mother_age_at_birth minutes_towatersource age_opv14_weeks weeks_since_rota10, d
+summ caa_concentration if coinfect_caa==1, d
+tab parastie_identified_from_kato if coinfect_parasite!=., m 
+
+///////////////////////////////////////////////////////////
+**# Figure 2 - Box plots
+*Creating a dataset for the box_plots 
+use "Both_datasets_long", clear
+keep pid visit sampletype logPV*
+
+rename logPV1_stool logPV1
+rename logPV3_stool logPV2
+rename logPV1_serum logPV3
+rename logPV3_serum logPV4
+rename logPV1_IgA_stool logPV5
+rename logPV3_IgA_stool logPV6
+rename logPV1_IgA_serum logPV7
+rename logPV3_IgA_serum logPV8
+rename logPV1_IgG_serum logPV9
+rename logPV3_IgG_serum logPV10
+
+reshape long logPV, i(pid visit) j(assay)
+sort pid assay
+label define assay 1 "PV1 stool neut" 2"PV3 stool neut" 3"PV1 serum neut" 4"PV3 serum neut" 5"PV1 stool IgA" 6"PV3 stool IgA" 7"PV1 serum IgA" 8"PV3 serum IgA" 9"PV1 serum IgG" 10"PV3 serum IgG"
+label values assay assay
+list pid visit sampletype assay logPV in 1/20, sepby(pid)
+
+save "box_plots", replace
+
+///////////////////////////////////////////////////////////
+**# Figure 3 - Longitudinal stratified by baseline
+
+
+/*Median & IQR stratified by baseline for table - not currently reported
+
+postfile handle str20 assay str20 baseline str20 sampletype str20 pv str20 visit median ci_low ci_high using results_ST3.dta, replace
+
 foreach x in 1 2 3 {
-	replace  pv`x'_serum = pv`x'neuttiterserum if sampletype==2
-	drop pv`x'neuttiterserum
+	rename logPV`x'_stool logPV`x'_neut_stool
+	rename logPV`x'_serum logPV`x'_neut_serum
 }
 
-gen follow_up_weeks_integer = int(follow_up_days/7)
-gen follow_up_months_integer = int(follow_up_days/30)
+local assay neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut neut IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgA IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG IgG
+local visits 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4
+local pv 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3
+local highlowbaseline 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0
+local samplet stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool stool serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum serum     
+forvalues x=1/80 {
+	local x1: word `x' of `visits'
+	local x2: word `x' of `pv'
+	local x3: word `x' of `highlowbaseline'
+	local x4: word `x' of `samplet'
+	local x5: word `x' of `assay'
+summarize logPV`x2'_`x5'_`x4' if high_neut_baseline_pv`x2'==`x3' & visit==`x1', d
+	local `x5'_`x4'_pv`x2'_v`x1'_hbl`x3'_p25 = r(p25)
+	local `x5'_`x4'_pv`x2'_v`x1'_hbl`x3'_median = r(p50)
+	local `x5'_`x4'_pv`x2'_v`x1'_hbl`x3'_p75 = r(p75)
+	post handle ("`x5'") ("`x3'") ("`x4'") ("`x2'") ("`x1'") (r(p50)) (r(p25)) (r(p75))
+}
 
-//Those followed-up > 7 days after bOPV4 are equally likley to be PV1/PV3 positive as those followed up < 7 days after.
-tab pv3_stool_positive follow_up_weeks_integer if visit==1, col
-tab pv1_stool_positive follow_up_weeks_integer if visit==1, col
+postclose handle
+use results_ST3.dta, clear
+export excel using "supplementary table 3.xlsx", replace 
+*/
 
-tab follow_up_months_integer visit, m
-tab follow_up_weeks_integer visit, m
-//Weeks for long are => 0-1 for baseline; 2-6 for month 1; 11-18 for month 3; 24-31 for month 6
-
-gen age_bopv14w = int((bopv14w_date - infant_dob)/7)
-tab age_bopv14w
-hist age_bopv14w, bin(100)
-
-*Generate visit number for cross-sectional participants
-gen visit_cross = .
-replace visit_cross = follow_up_months_integer if sampletype==1
-recode visit_cross 0/1=2 2/4=3 5/7=4 10/15=5 22/26=6 34/38=7 97/119=8
-label define visit_cross 2 "Month 1" 3 "Month 3" 4 "Month 6" 5 "Year 1" 6 "Year 2" 7 "Year 3" 8 "Year 8-9", replace
-label values visit_cross visit_cross
-tab visit_cross
-tab follow_up_weeks_integer visit_cross if sampletype==1
-
-replace visit = visit_cross if sampletype==1
-drop visit_cross
-
-*variable for average 'day' for each visit (needed for summary stats on plots)
-drop summ_visit_day
-bysort visit: summ follow_up_days
-gen summ_visit_day = .
-replace summ_visit_day = 0 if visit==1 
-replace summ_visit_day = 30 if visit==2
-replace summ_visit_day = 90 if visit==3
-replace summ_visit_day = 180 if visit==4
-replace summ_visit_day = 365 if visit==5
-replace summ_visit_day = 730 if visit==6
-replace summ_visit_day = 1095 if visit==7
-replace summ_visit_day = 3103 if visit==8
-
-replace pv1_stool_responses = pv1_stool_positive if sampletype==1
-replace pv1_stool_responses_exclbl = pv1_stool_positive if sampletype==1
-replace pv3_stool_responses = pv3_stool_positive if sampletype==1
-replace pv3_stool_responses_exclbl = pv3_stool_positive if sampletype==1
-
-save "Both_datasets_long", replace
+///////////////////////////////////////////////////////////
+**# Figure 4 - Forest plot
 use "Both_datasets_long", clear
+keep if sampletype==2 & visit==1 //Longitudinal only
 
-//////////////////////////////////////////////////////////////////////////
-*Merge in EE data
-use "AIM 1 dataset_merged_eedata_December102025.dta", clear //Longitudinal dataset with EE matched-in
-recode EE_score 0/6=0 7/10=1, gen(EE_bin)
-tab EE_bin
-summ concentration_NPO concentration_MPO concentration_AAT, d
-keep pid visit EE_bin EE_score concentration_NPO concentration_MPO concentration_AAT
+postfile handle str20 pv str20 outcome coef pval ci_low ci_high using results_temp.dta, replace
+//Fitting logistic regressions for each variable - without sex!
+foreach x in bf_4months watersource_bin stunting hiv_exposure coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus EE_bin {
+	logistic pv1_stool_responses `x' ageweek, or
+	local b = exp(_b[`x'])
+    local ci_l = exp(_b[`x'] - 1.96 * _se[`x'])
+    local ci_h = exp(_b[`x'] + 1.96 * _se[`x'])
+	testparm `x'
+	local p = r(p)
+	post handle ("pv1") ("`x'") (`b') (`p') (`ci_l') (`ci_h')
+	
+	logistic pv3_stool_responses `x' ageweek, or
+	local b = exp(_b[`x'])
+    local ci_l = exp(_b[`x'] - 1.96 * _se[`x'])
+    local ci_h = exp(_b[`x'] + 1.96 * _se[`x'])
+	testparm `x'
+	local p = r(p)
+	post handle ("pv3") ("`x'") (`b') (`p') (`ci_l') (`ci_h')
+} //type 3 has no variation within coinfect_caa - none of the pv3 positive were schisto positive.
+foreach x in coinfect_caa {
+	logistic pv1_stool_responses `x' ageweek, or
+	local b = exp(_b[`x'])
+    local ci_l = exp(_b[`x'] - 1.96 * _se[`x'])
+    local ci_h = exp(_b[`x'] + 1.96 * _se[`x'])
+	testparm `x'
+	local p = r(p)
+	post handle ("pv1") ("`x'") (`b') (`p') (`ci_l') (`ci_h')
+}
+
+postclose handle
+use results_temp.dta, clear
+export excel using "reg_long_results7_ee.xlsx", replace
+
+clear
+import excel "reg_long_results7_ee.xlsx"
+rename A PV
+rename B var
+rename C OR
+rename D p
+rename E Lower_confidence_interval
+rename F Upper_confidence_interval
+list in 1
+replace PV = "1" if PV=="pv1"
+replace PV = "3" if PV=="pv3"
+destring PV, replace
+reshape wide OR p Lower_confidence_interval Upper_confidence_interval, i(var) j(PV) 
+list in 1
+save "Forest_plot_2_ee", replace
+
+*Two-by-two tables
+use "Both_datasets_long", clear
 keep if visit==1
-save "EE_lookup", replace
-use "Both_datasets_long", clear
-merge m:1 pid using "EE_lookup"
-tab sampletype _merge, m
-tab pid if _merge==2 //The EE dataset includes POL 421 who was later excluded
-drop if _merge==2 
-drop _merge
-
-save "Both_datasets_long", replace
+log using "Two-by-two tables", replace
+foreach x in bf_4months watersource_bin stunting hiv_exposure coinfect_caa coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus EE_bin{
+tab `x' pv1_stool_responses, col
+tab `x' pv3_stool_responses, col  
+}
+log close
+translate "Two-by-two tables.smcl" "Two-by-two tables.pdf"
