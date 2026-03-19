@@ -1,0 +1,76 @@
+*SET UP
+clear
+set more off
+
+use "Both_datasets_long", clear
+keep if sampletype==1
+keep pid visit
+save "cross_sectional_visit_look_up", replace
+
+import delimited "C:\Users\_____________________\Tanzania Stool IgA Total.csv", varnames(1) clear 
+rename igaugml total_IgA
+rename labid sample_id
+duplicates tag sample_id, generate(dup)
+list if dup==1
+drop if total_IgA=="ND" & sample_id=="BXU10CS2" 
+drop if total_IgA=="ND" & sample_id=="BXU10YS1" 
+list if total_IgA=="ND"
+replace total_IgA="." if total_IgA=="ND" //61 are missing
+destring total_IgA, replace
+save "Stool_total_IgA.dta", replace
+
+/*use "longitudinal_stool_IgA", clear
+merge 1:1 sample_id using "Stool_total_IgA.dta"
+tab sampletype _merge, m
+keep pid sample_id total_IgA sampletype visit
+keep if sampletype!=.
+save "Stool_IgA_blanks_lookup1", replace
+
+use "crosssectional_stool_IgA", clear
+merge 1:1 sample_id using "Stool_total_IgA.dta"
+keep if _merge==3
+gen sampletype=1
+keep pid sample_id total_IgA sampletype
+merge 1:1 pid using "cross_sectional_visit_look_up"
+list if _merge!=3
+drop if _merge!=3
+drop _merge
+save "Stool_IgA_blanks_lookup2", replace
+
+append using "Stool_IgA_blanks_lookup1"
+tab sampletype, m
+//expecting 343 longitudinal; 246 cross-sectional
+save "Stool_IgA_blanks_lookup", replace
+
+use "Both_datasets_long", clear
+merge 1:1 pid visit using "Stool_IgA_blanks_lookup"
+list pid sample_id total_IgA sampletype visit _merge if _merge!=3
+list logPV1_IgA_stool logPV2_IgA_stool logPV3_IgA_stool if _merge==1 //all missing the IgA data
+codebook logPV1_IgA_stool
+codebook total_IgA
+gen logIgA = ln(total_IgA)/ln(10)
+save "Stool_total_IgA_merge", replace */
+
+*Check
+use "Both_datasets_long", clear
+merge m:1 sample_id using "Stool_total_IgA.dta"
+gen logIgA = ln(total_IgA)/ln(10)
+save "Stool_total_IgA_merge", replace 
+
+
+use "Stool_total_IgA_merge", clear
+keep if sampletype==2
+tabstat logIgA, statistics(median p25 p75 n) by(visit) 
+tabstat total_IgA, statistics(median p25 p75 n) by(visit) 
+quietly mixed total_IgA i.visit || pid:
+testparm i.visit
+
+use "Stool_total_IgA_merge", clear
+keep if sampletype==1
+tabstat logIgA, statistics(median p25 p75 n) by(visit) 
+tabstat total_IgA, statistics(median p25 p75 n) by(visit) 
+quietly regress total_IgA i.visit
+testparm i.visit
+
+
+
