@@ -45,4 +45,8 @@ R file_Fig 3 Plots script.R
 R file_Fig 4 Forest plots script.R
       -> Uses Forest_plot_2_ee.dta to generate forest plot for associations between positive PV1 and PV3 neutralsiation in stool with co-infection and nutrition variables.
 
+R file Correlation plots script.R
+      -> Scatter plots and Kendal tau correlation analysis for supplementary correlations.
+
+      
 
