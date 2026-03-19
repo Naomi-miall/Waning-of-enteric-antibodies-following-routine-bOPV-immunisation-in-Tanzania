@@ -37,6 +37,10 @@ Do file 6_Total IgA analysis
 
 
 R file_Fig 2 Box plots script.R
-      -> Uses Box_plots.dta to create a box plot for neut, IgA and IgG titers for PV1 and PV3 (main text - saved as Figure 1.png) and PV2 (supplement - saved as Figure 1.2_PV2.png) in stool and serum, stratified by timepoint and study group.
+      -> Uses Box_plots.dta to create a box plot for neut, IgA, and IgG titers for PV1 and PV3 (main text - saved as Figure 1.png) and PV2 (supplement - saved as Figure 1.2_PV2.png) in stool and serum, stratified by timepoint and study group.
 
+R file_Fig 3 Plots script.R
+      ->Serotype specific spagetti plots for neut, IgA, and IgG titers in stool and serum among the longitudinal sample, stratified by positive or negative baseline stool neutralisation titer in stool for the homotypic serotype.
+
+R file_Fig 
 
