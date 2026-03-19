@@ -1,13 +1,9 @@
 /* Duration of polio antibody responses following bOPV vaccination in Tanzania.
-  Alexandra Codeiro and Naomi Miall
   September 2025
 */
 clear
 set more off
 
-*Filepath for Naomi:
-cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
-///////////////////////////////////////////////////////////////
 use "merged_dataset_long", clear
 append using "cross-sectional_clean"
 foreach x in 1 2 3 {
