@@ -1,10 +1,9 @@
 ###R script creating box plots for TZA duration of immunity paper
-#Naomi and Alex
 #October 2025
 
 #Set up: Libaries; working directory; theme:
 ### scatter plot ####
-setwd ("C:/Users/NaomiMiall/Documents/Polio work/Tanzania")
+setwd ("C:/Users/___________")
 
 ## library
 library(haven)
@@ -56,8 +55,8 @@ box_neut_stool <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                alpha = 0.3) +
   geom_vline(xintercept = 0.4,  color = "black") +
   scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+                     name = " ",
+                     labels = c("1" = "Cross sectional participants", "2" = "Longitudinal participants")) +
   mytheme2 +
   scale_y_continuous(breaks = c(2, 6, 10, 14), limits = c(1, 14)) +
   labs(x = "Time since fourth dose of bOPV", y = "Log<sub>2</sub> neutralization titer") +
@@ -103,8 +102,8 @@ box_neut_serum <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                alpha = 0.3) +
   geom_vline(xintercept = 0.4,  color = "black") +
   scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+                     name = " ",
+                     labels = c("1" = "Cross sectional participants", "2" = "Longitudinal participants")) +
   mytheme2 +
   geom_hline(yintercept = 3, linetype = "dashed") +
   scale_y_continuous(breaks = c(2, 6, 10, 14), limits = c(1, 14)) +
@@ -152,8 +151,8 @@ box_IgA_stool <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                alpha = 0.3) +
   geom_vline(xintercept = 0.4,  color = "black") +
   scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+                     name = " ",
+                     labels = c("1" = "Cross sectional participants", "2" = "Longitudinal participants")) +
   mytheme2 +
   scale_y_continuous(breaks = c(-1:4), limits = c(-1, 4)) +
   labs(x = "Time since fourth dose of bOPV", y = "Log<sub>10</sub> IgA MFI") +
@@ -199,8 +198,8 @@ box_IgA_serum <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                alpha = 0.3) +
   geom_vline(xintercept = 0.4,  color = "black") +
   scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+                     name = " ",
+                     labels = c("1" = "Cross sectional participants", "2" = "Longitudinal participants")) +
   mytheme2 +
   scale_y_continuous(breaks = c(-1:4), limits = c(-1, 4)) +
   labs(x = "Time since fourth dose of bOPV", y = "Log<sub>10</sub> IgA MFI") +
@@ -246,8 +245,8 @@ box_IgG_serum <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                alpha = 0.3) +
   geom_vline(xintercept = 0.4,  color = "black") +
   scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+                     name = " ",
+                     labels = c("1" = "Cross sectional participants", "2" = "Longitudinal participants")) +
   mytheme2 +
   scale_y_continuous(breaks = c(-1:4), limits = c(-1, 4)) +
   labs(x = "Time since fourth dose of bOPV", y = "Log<sub>10</sub> IgG MFI") +
@@ -279,16 +278,21 @@ ggsave("Figures/Figure 1.png", width =12, height = 20, dpi = 300)
 
 
 ##########################################################
+##########################################################
 #PV2 unstratified in longitdudinal sample
 longitudinal <- read_dta("Box_plots_PV2.dta")
-longitudinal <- subset (longitudinal, assay<3 & visit!=NA)
+longitudinal <- subset (longitudinal, assay<3)
 longitudinal$visit <- factor(longitudinal$visit, levels = c("1", "2", "3", "4", "5", "6", "7", "8"),
                              labels = c("Baseline", "One month", "3 months", "6 months", "1 year", "2 years", "3 years", "8-9 years"))
 longitudinal$assay <- factor(longitudinal$assay, levels = c("1", "2"),
-                             labels = c("Poliovirus type 2 in stool", "Poliovirus type 2 in serum"))
+                             labels = c("Log2 neutralization in stool", "Log2 neutralization in serum"))
+longitudinal$colour_group <- with(longitudinal, ifelse(sampletype == 1, "Cross-sectional", "Longitudinal"))
+longitudinal$colour_group <- factor(
+  longitudinal$colour_group, levels = c("Longitudinal", "Cross-sectional"))
+
 
 box2 <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
-  geom_jitter(aes(color = factor(sampletype)),
+  geom_jitter(aes(color = factor(colour_group)),
               alpha = 0.6,
               position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.7),
               size = 2) +
@@ -300,9 +304,9 @@ box2 <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                color = "black",
                fill = NA,
                alpha = 0.3) +
-  scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+  scale_color_manual(values = c("Longitudinal" = "#E66218", "Cross-sectional" = "#1f78b4"),
+                     name = " ",
+                     labels = c("Longitudinal" =  "Longitudinal participants", "Cross-sectional" ="Cross sectional participants")) +
   mytheme2 +
   scale_y_continuous(breaks = c(2, 4, 6, 8, 10, 12, 14), limits = c(1, 14)) +
   labs(x = "Time since fourth dose of bOPV", y = "Log<sub>2</sub> neutralization titer") +
@@ -323,6 +327,54 @@ box2
 ggsave("Figures/Figure 1_PV2.png", width = 10, height = 5, dpi = 300)
 
 
+
+longitudinal <- read_dta("Box_plots_PV2.dta")
+longitudinal <- subset (longitudinal, assay>2)
+longitudinal$visit <- factor(longitudinal$visit, levels = c("1", "2", "3", "4", "5", "6", "7", "8"),
+                             labels = c("Baseline", "One month", "3 months", "6 months", "1 year", "2 years", "3 years", "8-9 years"))
+longitudinal$assay <- factor(longitudinal$assay, levels = c("3", "4", "5"),
+                             labels = c("Log10 IgA MFI in stool", "Log10 IgA MFI in serum", "Log10 IgG MFI in serum"))
+longitudinal$colour_group <- with(longitudinal, 
+                                         ifelse(sampletype == 1, "Cross-sectional", "Longitudinal"))
+longitudinal$colour_group <- factor(
+  longitudinal$colour_group,
+  levels = c("Longitudinal", "Cross-sectional"))
+
+
+box2 <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
+  geom_jitter(aes(color = factor(colour_group)),
+              alpha = 0.6,
+              position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.7),
+              size = 2) +
+  geom_boxplot(aes(group = interaction(sampletype, visit)),
+               position = position_dodge2(width = 0.6, preserve = "single", padding=0.1),
+               fatten = 3,
+               width = 0.7, 
+               outlier.shape = NA,
+               color = "black",
+               fill = NA,
+               alpha = 0.3) +
+  scale_color_manual(values = c("Longitudinal" = "#E66218", "Cross-sectional" = "#1f78b4"),
+                     name = " ",
+                     labels = c("Longitudinal" =  "Longitudinal participants", "Cross-sectional" ="Cross sectional participants")) +
+  mytheme2 +
+  scale_y_continuous(breaks = c(-1:5), limits = c(-1, 5)) +
+  labs(x = "Time since fourth dose of bOPV", y = "Log<sub>10</sub> IgA MFI") +
+  scale_x_discrete(labels = c("Baseline", "1 month", "3 months", "6 months", "1 year", "2 years", "3 years", "8–9 years")) +
+  facet_wrap(~assay) +
+  theme(plot.caption = element_text(hjust = 0.5, size = 14),
+        legend.position = "bottom",
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 14),
+        axis.title.y = element_markdown(size = 16, face="bold"),
+        axis.title.x = element_text(size = 16, face="bold"),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 14),
+        strip.background = element_rect(fill="white"),
+        strip.text = element_text(face="bold", size=16),
+        panel.spacing = unit(2, "lines"))
+box2
+ggsave("Figures/Figure 1.2_PV2.png", width = 15, height = 5, dpi = 300)
 
 
 
@@ -349,8 +401,8 @@ boxIg <- ggplot(longitudinal, aes(x = factor(visit), y = logPV)) +
                fill = NA,
                alpha = 0.3) +
   scale_color_manual(values = c("1" = "#1f78b4", "2" = "#E66218"),
-                     name = "Cohort",
-                     labels = c("1" = "Cross sectional", "2" = "Longitudinal")) +
+                     name = " ",
+                     labels = c("1" = "Cross sectional participants", "2" = "Longitudinal participants")) +
   mytheme2 +
   scale_y_continuous(breaks = c(1:4), limits = c(1, 4)) +
   labs(x = "Time since fourth dose of bOPV", y = "Log<sub>10</sub> MFI") +
