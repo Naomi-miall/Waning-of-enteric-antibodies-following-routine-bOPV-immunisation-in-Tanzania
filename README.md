@@ -31,3 +31,10 @@ Do file 5_Supplementary materials
       -> Comparing the full longitudinal dataset to the complete data sample
       -> Prepares correlations dataset by keeping only cross-sectional or month 1 for the longitudinal
       -> Type 2 analysis
+
+Do file 6_Total IgA analysis
+      -> Estimates total IgA stratified by timepoint and study group
+
+
+R file_Fig 2 Box plots script.R
+      ->
