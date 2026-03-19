@@ -1,5 +1,4 @@
 /* Duration of polio antibody responses following bOPV vaccination in Tanzania.
-  Alexandra Codeiro and Naomi Miall
   September 2025
 */
 
@@ -7,10 +6,6 @@
 *SET UP
 clear
 set more off
-
-*Filepath for Naomi:
-cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
-
 
 //////////////////////////////////////////////////////////////
 **# Supplement 1 - FLow diagram for longitudinal cohort
@@ -206,20 +201,44 @@ export excel using "supplementarytab3.xlsx", sheet("Sheet 1") replace
 use "Both_datasets_long_ee", clear
 */
 
+
+*Supplement 6: Serum antibodies in those negative at baseline in stool (longitudinal cohort) - "Participants may have negative baseline stool titers because they had not responded to any of the three previous bOPV doses, or because they experienced a short-duration response which was no longer detectable." Can serum titers indicate whether they had been infected previously?
+use "both_datasets_long", clear
+keep if sampletype==2
+ttest logPV1_serum if visit==1, by(high_neut_baseline_pv1) 
+ttest logPV1_serum if visit==2, by(high_neut_baseline_pv1) 
+ttest logPV1_serum if visit==3, by(high_neut_baseline_pv1) 
+ttest logPV1_serum if visit==4, by(high_neut_baseline_pv1) 
+
+ttest logPV3_serum if visit==1, by(high_neut_baseline_pv3) 
+ttest logPV3_serum if visit==2, by(high_neut_baseline_pv3) 
+ttest logPV3_serum if visit==3, by(high_neut_baseline_pv3) 
+ttest logPV3_serum if visit==4, by(high_neut_baseline_pv3) 
+
 //////////////////////////////////////////////////////////////
 **# Supplement 3 - Half-lives
 *Linear regression for PV1 between 1 month and 6 months
-use "both_datasets_long", clear
-keep if visit<5 
+/*use "both_datasets_long", clear
+keep if visit<5 & visit>1
 mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
  display 1/ _b[follow_up_months]
-display 1/.3260435 
-display 1/.1830788
+display 1/-.3385773  
+display 1/-.1801566
 
 mixed logPV3_stool c.follow_up_months age_opv14_weeks || pid:
  display 1/ _b[follow_up_months]
-display 1/ .6871491
-display 1/ .485025
+display 1/ -.6566441
+display 1/ -.4171413
+
+mixed logPV1_serum c.follow_up_months age_opv14_weeks || pid:
+ display 1/ _b[follow_up_months]
+display 1/-.4183097
+display 1/-.2418628
+
+mixed logPV3_serum c.follow_up_months age_opv14_weeks || pid:
+ display 1/ _b[follow_up_months]
+display 1/-.1528036
+display 1/.0306428 
 
 *Cross sectional
 use "both_datasets_long", clear
@@ -240,15 +259,67 @@ local t = invttail(e(df_r), 0.025)
 display 1/ (`b' - (`t' * `se'))
 display 1/ (`b' + (`t' * `se'))
 
-//Longitudinal
+regress logPV1_serum follow_up_months age_opv14_weeks
+ display 1/ _b[follow_up_months]
+ local b = _b[follow_up_months]
+local se = _se[follow_up_months]
+local t = invttail(e(df_r), 0.025)
+display 1/ (`b' - (`t' * `se'))
+display 1/ (`b' + (`t' * `se'))
+
+regress logPV3_stool follow_up_months age_opv14_weeks
+ display 1/ _b[follow_up_months]
+ local b = _b[follow_up_months]
+local se = _se[follow_up_months]
+local t = invttail(e(df_r), 0.025)
+display 1/ (`b' - (`t' * `se'))
+display 1/ (`b' + (`t' * `se')) */
+
+//Longitudinal PV1
 use "both_datasets_long", clear
 keep if sampletype==2 & visit>1
-mixed logPV1_stool c.follow_up_months##high_neut_baseline_pv1 age_opv14_weeks || pid: //interaction term high p-value (>0.5) so will not stratify by baseline neut
+mixed logPV1_stool c.follow_up_months##high_neut_baseline_pv1 age_opv14_weeks || pid: //interaction term high p-value (>0.5) so perhaps will not stratify by baseline neut
 mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
 display 1/ _b[follow_up_months]
 display 1/  -.3862435
 display 1/  -.2003813
- 
+
+mixed logPV1_serum c.follow_up_months##high_neut_baseline_pv1 age_opv14_weeks || pid: //interaction term high p-value (>0.5) so will not stratify by baseline neut
+mixed logPV1_serum c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/  -.589783
+display 1/   .2656467
+
+*Long positive baseline
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
+keep if high_neut_baseline_pv1==1
+mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/  -.5458847
+display 1/  -.1233416
+
+mixed logPV1_serum c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/ -.5089679 
+display 1/ -.1752633
+
+*Long negative baseline
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
+keep if high_neut_baseline_pv1==0
+mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/ -.3812301   
+display 1/ -.1777054
+
+mixed logPV1_serum c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/   -.5061768
+display 1/  -.28337
+
+*PV3
+*Longitudinal
 use "both_datasets_long", clear
 keep if sampletype==2 & visit>1
 mixed logPV3_stool c.follow_up_months##high_neut_baseline_pv3 age_opv14_weeks || pid: //again interaction term high p-value (0.11) so will not stratify by baseline neut
@@ -257,10 +328,44 @@ display 1/ _b[follow_up_months]
 display 1/  -.7333131  
 display 1/   -.440761
 
+mixed logPV3_serum c.follow_up_months##high_neut_baseline_pv3 age_opv14_weeks || pid: //again interaction term high p-value (0.11) so will not stratify by baseline neut
+mixed logPV3_serum c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/ -.1387398  
+display 1/  .0622222
+
+//pos baseline
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
+keep if high_neut_baseline_pv3==1
+mixed logPV3_stool c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/  -.8223078
+display 1/   -.4884445
+
+mixed logPV3_serum c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/  -.1531295
+display 1/  .0642316
+
+//pos baseline
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
+keep if high_neut_baseline_pv3==0
+mixed logPV3_stool c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/  -.6786441
+display 1/  -.1254449
+
+mixed logPV3_serum c.follow_up_months age_opv14_weeks || pid:
+display 1/ _b[follow_up_months]
+display 1/  -.2785531 
+display 1/  .1920396
+
 
 //////////////////////////////////////////////////////////////
 **# Supplement 5 - Correlations
-use "Both_datasets_long", clear
+use "Stool_total_IgA_merge", clear
 *using month 1 for longitudinal:
 keep if sampletype==1 | visit==2
 tab visit sampletype
@@ -352,8 +457,17 @@ save "Forest_plot_detect_ee", replace
 
 //////////////////////////////////////////////////////////////
 **# Supplement 8 - Type 2 box plots
+
 use "Both_datasets_long", clear
-keep pid visit sampletype logPV*
+summ infant_dob, d
+tab infant_dob if infant_dob==19963 //Eldest infant was born 28 Aug 2014
+// 2,742 Days between 28 August 2014 and 01 March 2022
+display 19963+2742 //22705
+gen nOPV2 = infant_dob
+recode nOPV2 0/22704=1 22705/24000=0
+tab nOPV2 sampletype
+
+keep pid visit sampletype logPV* nOPV2
 
 rename logPV2_stool logPV1
 rename logPV2_serum logPV2
@@ -369,6 +483,26 @@ list pid visit sampletype assay logPV in 1/20, sepby(pid)
 save "box_plots_PV2", replace
 
 use "Both_datasets_long", clear
+summ infant_dob, d
+tab infant_dob if infant_dob==19963 //Eldest infant was born 28 Aug 2014
+// 2,742 Days between 28 August 2014 and 01 March 2022
+display 19963+2742 //22705
+gen nOPV2 = infant_dob
+recode nOPV2 0/22704=1 22705/24000=0
+
+//Gen a variable for longitudinal for any PV2 responses
+bysort pid: egen anyPV2pos = max(pv2_stool_positive)
+list pid visit anyPV2pos pv2_stool_positive if sampletype==2, sepby(pid)
+keep if visit==1 | sampletype==1
+
+*reporting
+tab pv2_stool_positive nOPV2, col
+drop if visit==8 //excluding 8-9y olds who had not recieved IPV
+tabstat logPV2_serum, statistics(median p25 p75 n) by(nOPV2) 
+ranksum logPV2_serum, by(nOPV2)
+
+
+use "Both_datasets_long", clear
 gen pv2_bin = logPV2_stool
 recode pv2_bin 1/3=0 3/10=1
 //positive PV2 by visit and stratified by cohort
@@ -378,7 +512,8 @@ tab visit pv2_bin if sampletype==2, row
 //Longitudinal participants with a positive type 2 at any point
 bysort pid: egen pv2_max_bin = max(pv2_bin) // flagging participants with a positive type 2 at any point
 tab pv2_max_bin if visit==1 | sampletype==1
-tab visit pv2_max_bin, row
+tab sampletype pv2_bin, row 
+tab visit pv2_bin, row 
 //Serum PV2 at month 1
 tabstat logPV2_serum if visit==2, statistics(median p25 p75) by(sampletype)
 
