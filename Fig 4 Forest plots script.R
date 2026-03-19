@@ -1,6 +1,6 @@
 ##Forest plot code
 
-setwd ("C:/Users/NaomiMiall/Documents/Polio work/Tanzania")
+setwd ("C:/Users/___________________________________")
 
 library(forestplot)
 library(dplyr)
@@ -27,15 +27,15 @@ df$var <- recode(df$var,
                  "bf_4months" = "Non-exclusive breastfeeding¹",
                  "stunting" = "Stunting",
                  "watersource_bin" = "At least 15 minutes to water-source",
-                 "hiv_exposure" = "HIV exposed",
+                 "hiv_exposure" = "HIV exposed uninfected",
                  "coinfect_enteroinvas" = "Enteroinvasive bacteria³",
                  "coinfect_otherbacter" = "Other bacteria⁴",
                  "coinfect_virus" = "Virus⁵",
                  "coinfect_caa" = "Schistosomiasis CAA",
                  "EE_bin" = "High burden environmental enteropathy⁶")
 
-df$var <- factor(df$var, levels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"),
-                 labels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"))
+df$var <- factor(df$var, levels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed uninfected", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"),
+                 labels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed uninfected", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"))
 df <- df[order(df$var), ]
 df$var <- as.character(df$var)
 
@@ -82,7 +82,7 @@ forestplot <- forestplot(labeltext = label_matrix,
            boxsize = 0.2,
            clip = c(0.01, 8),
            xticks = c(0.05, 0.12, 0.25, 0.5, 1, 2, 4, 8, 16),
-           legend = c("Positive neutralisation for poliovirus type-1", "Positive neutralisation for poliovirus type-3"),
+           legend = c("Positive neutralization for poliovirus type-1", "Positive neutralization for poliovirus type-3"),
            txt_gp = fpTxtGp(label = gpar(fontfamily = "", cex = 0.9)))
 forestplot
 
@@ -97,15 +97,15 @@ df$var <- recode(df$var,
                  "bf_4months" = "Non-exclusive breastfeeding¹",
                  "stunting" = "Stunting",
                  "watersource_bin" = "At least 15 minutes to water-source",
-                 "hiv_exposure" = "HIV exposed",
+                 "hiv_exposure" = "HIV exposed uninfected",
                  "coinfect_enteroinvas" = "Enteroinvasive bacteria³",
                  "coinfect_otherbacter" = "Other bacteria⁴",
                  "coinfect_virus" = "Virus⁵",
                  "coinfect_caa" = "Schistosomiasis CAA",
                  "EE_bin" = "High burden environmental enteropathy⁶")
 
-df$var <- factor(df$var, levels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"),
-                 labels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"))
+df$var <- factor(df$var, levels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed uninfected", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"),
+                 labels = c("Non-exclusive breastfeeding¹", "At least 15 minutes to water-source","Stunting","HIV exposed uninfected", "Schistosomiasis CAA","Enteroinvasive bacteria³","Other bacteria⁴","Virus⁵","High burden environmental enteropathy⁶"))
 df <- df[order(df$var), ]
 df$var <- as.character(df$var)
 
@@ -152,7 +152,7 @@ forestplot <- forestplot(labeltext = label_matrix,
                          boxsize = 0.2,
                          clip = c(0.01, 8),
                          xticks = c(0.05, 0.12, 0.25, 0.5, 1, 2, 4, 8, 16),
-                         legend = c("Detectable neutralisation for poliovirus type-1", "Detectable neutralisation for poliovirus type-3"),
+                         legend = c("Detectable neutralization for poliovirus type-1", "Detectable neutralization for poliovirus type-3"),
                          txt_gp = fpTxtGp(label = gpar(fontfamily = "", cex = 0.9)))
 forestplot
 
