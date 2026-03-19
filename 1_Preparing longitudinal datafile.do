@@ -1,15 +1,13 @@
 /* Duration of polio antibody responses following bOPV vaccination in Tanzania.
-  Alexandra Codeiro and Naomi Miall
   September 2025
- 
 */
 
 *SET UP
 clear
 set more off
 
-*Filepath for Naomi:
-cd "C:\Users\NaomiMiall\Documents\Polio work\Tanzania"
+*Set filepath:
+*cd "C:\Users\______"
 
 //////////////////////////////////////////////////////////////////
 **# Anthro measures
@@ -28,7 +26,7 @@ describe
 	lab var reflib "Directory of reference tables"
 
 	//datalib - specify the file where the input STATA data set is stored.
-	gen datalib="Stata code\Alex's code/"
+	gen datalib="Stata code\TZA code/"
 	lab var datalib "Directory for datafiles"
 
 	//datalab - specify the name that will prefix the output files (datalab_z_rc and datalab_prev_rc).
@@ -93,7 +91,7 @@ tab sex femalesex, m
 /* 	Fill in the macro parameters to run the command */
 igrowup_restricted reflib datalib datalab sex agedays ageunit weight_kgs height_cm measure oedema sw
 
-use "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", clear
+use "Stata code\TZA code\Anthrooutputs_longitudinal_z_rc.dta", clear
 
 *check height adjustment worked
 *recommended that lenght measured for children < 731 days, if height measured for children < 731 days then add 0.7 cm. 
@@ -160,12 +158,12 @@ gen overweight = (_zwei>2) if !missing(_zwei)
 	drop sw measure oedema ageunit ageweek_integer agedays sex datalab datalib reflib _agedays _clenhei _cbmi _fwfl _flen _fwei _fbmi
 	drop _zwei _zlen _zbmi
 	
-save "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", replace
+save "Stata code\TZA code\Anthrooutputs_longitudinal_z_rc.dta", replace
 //////////////////////////////////////////////////////////////////
 **# Data cleaning
 
 	*Creating co-infection exposure groupings and dropping repeat variables
-use "Stata code\Alex's code\Anthrooutputs_longitudinal_z_rc.dta", clear
+use "Stata code\TZA code\Anthrooutputs_longitudinal_z_rc.dta", clear
 
 *HIV
 tab hiv_pregnancy hiv_status_mother,m //hiv_pregnancy is repeat so keep only 1
@@ -512,7 +510,7 @@ foreach x in 1 2 3{
 	drop if pid==""
 save "stool_IgA", replace
 	*Add in blanks - set all that are equal to or below the blank to half of the lowest non-blank value for that serotype and assay
-import excel "C:\Users\NaomiMiall\Documents\Polio work\Tanzania\Stool_IgA_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
+import excel "C:\Users\______________\Stool_IgA_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear //Import Stool_IgA_blanks_lookup file
 drop J K L M
 foreach x in 1 2 3{
 	destring IPV`x', replace
@@ -580,7 +578,7 @@ foreach x in 1 2 3{
 	destring IPV`x', replace
 	}
 save "serum_IgG", replace
-import excel "C:\Users\NaomiMiall\Documents\Polio work\Tanzania\Serum_IgG_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
+import excel "C:\Users\________________________\Serum_IgG_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
 drop pid
 foreach x in 1 2 3{
 	destring IPV`x', replace
@@ -642,7 +640,7 @@ foreach x in 1 2 3{
 	}
 	drop if pid==""
 save "serum_IgA", replace
-import excel "C:\Users\NaomiMiall\Documents\Polio work\Tanzania\Serum_IgA_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
+import excel "C:\Users\____________________\Serum_IgA_blanks_lookup.xlsx", sheet("Sheet1") firstrow clear
 foreach x in 1 2 3{
 	replace IPV`x'="." if IPV`x'=="NaN"
 	destring IPV`x', replace
@@ -733,4 +731,5 @@ list pid visit PV3_IgA_serum PV3_IgA_serum_preblanks if PV3_IgA_serum_preblanks<
 list pid visit PV1_IgG_serum PV1_IgG_serum_preblanks if PV1_IgG_serum_preblanks<=0, sepby(pid)
 list pid visit PV2_IgG_serum PV2_IgG_serum_preblanks if PV2_IgG_serum_preblanks<=0, sepby(pid)
 list pid visit PV3_IgG_serum PV3_IgG_serum_preblanks if PV3_IgG_serum_preblanks<=0, sepby(pid)
+
 
