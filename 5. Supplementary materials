@@ -147,6 +147,29 @@ testparm i.visit
 testparm i.visit
 }
 
+	*same but excluding the 8-9 year old age group:
+use "Both_datasets_long", clear
+keep if sampletype==1 & visit<8
+foreach x in 1 2 3 {
+	rename logPV`x'_stool logPV`x'_neut_stool
+	rename logPV`x'_serum logPV`x'_neut_serum
+}
+
+foreach x in 1 3 {
+	logit pv`x'_stool_positive i.visit, or
+testparm i.visit
+	regress logPV`x'_neut_stool i.visit
+testparm i.visit
+	regress logPV`x'_IgA_stool i.visit
+testparm i.visit
+	regress logPV`x'_neut_serum i.visit
+testparm i.visit
+	regress logPV`x'_IgA_serum i.visit
+testparm i.visit
+	regress logPV`x'_IgG_serum i.visit
+testparm i.visit
+}
+
 *For both cohorts: comparison of PV1 and PV3 across time-points: p-values
 use "Both_datasets_long", clear
 /*gen difference = logPV3_stool - logPV1_stool
