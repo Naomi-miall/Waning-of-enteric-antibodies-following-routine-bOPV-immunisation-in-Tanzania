@@ -72,5 +72,10 @@ tabstat total_IgA, statistics(median p25 p75 n) by(visit)
 quietly regress total_IgA i.visit
 testparm i.visit
 
+*sensitivity analysis excluding 8-9y age group
+keep if visit<8
+quietly regress total_IgA i.visit
+testparm i.visit
+
 
 
