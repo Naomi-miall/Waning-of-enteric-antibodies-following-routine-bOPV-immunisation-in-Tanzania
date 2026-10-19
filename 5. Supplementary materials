@@ -224,80 +224,9 @@ export excel using "supplementarytab3.xlsx", sheet("Sheet 1") replace
 use "Both_datasets_long_ee", clear
 */
 
-
-*Supplement 6: Serum antibodies in those negative at baseline in stool (longitudinal cohort) - "Participants may have negative baseline stool titers because they had not responded to any of the three previous bOPV doses, or because they experienced a short-duration response which was no longer detectable." Can serum titers indicate whether they had been infected previously?
-use "both_datasets_long", clear
-keep if sampletype==2
-ttest logPV1_serum if visit==1, by(high_neut_baseline_pv1) 
-ttest logPV1_serum if visit==2, by(high_neut_baseline_pv1) 
-ttest logPV1_serum if visit==3, by(high_neut_baseline_pv1) 
-ttest logPV1_serum if visit==4, by(high_neut_baseline_pv1) 
-
-ttest logPV3_serum if visit==1, by(high_neut_baseline_pv3) 
-ttest logPV3_serum if visit==2, by(high_neut_baseline_pv3) 
-ttest logPV3_serum if visit==3, by(high_neut_baseline_pv3) 
-ttest logPV3_serum if visit==4, by(high_neut_baseline_pv3) 
-
 //////////////////////////////////////////////////////////////
 **# Supplement 3 - Half-lives
 *Linear regression for PV1 between 1 month and 6 months
-/*use "both_datasets_long", clear
-keep if visit<5 & visit>1
-mixed logPV1_stool c.follow_up_months age_opv14_weeks || pid:
- display 1/ _b[follow_up_months]
-display 1/-.3385773  
-display 1/-.1801566
-
-mixed logPV3_stool c.follow_up_months age_opv14_weeks || pid:
- display 1/ _b[follow_up_months]
-display 1/ -.6566441
-display 1/ -.4171413
-
-mixed logPV1_serum c.follow_up_months age_opv14_weeks || pid:
- display 1/ _b[follow_up_months]
-display 1/-.4183097
-display 1/-.2418628
-
-mixed logPV3_serum c.follow_up_months age_opv14_weeks || pid:
- display 1/ _b[follow_up_months]
-display 1/-.1528036
-display 1/.0306428 
-
-*Cross sectional
-use "both_datasets_long", clear
-keep if sampletype==1 & visit<5
-regress logPV1_stool follow_up_months age_opv14_weeks
- display 1/ _b[follow_up_months]
- local b = _b[follow_up_months]
-local se = _se[follow_up_months]
-local t = invttail(e(df_r), 0.025)
-display 1/ (`b' - (`t' * `se'))
-display 1/ (`b' + (`t' * `se'))
- 
-regress logPV3_stool follow_up_months age_opv14_weeks
- display 1/ _b[follow_up_months]
-local b = _b[follow_up_months]
-local se = _se[follow_up_months]
-local t = invttail(e(df_r), 0.025)
-display 1/ (`b' - (`t' * `se'))
-display 1/ (`b' + (`t' * `se'))
-
-regress logPV1_serum follow_up_months age_opv14_weeks
- display 1/ _b[follow_up_months]
- local b = _b[follow_up_months]
-local se = _se[follow_up_months]
-local t = invttail(e(df_r), 0.025)
-display 1/ (`b' - (`t' * `se'))
-display 1/ (`b' + (`t' * `se'))
-
-regress logPV3_stool follow_up_months age_opv14_weeks
- display 1/ _b[follow_up_months]
- local b = _b[follow_up_months]
-local se = _se[follow_up_months]
-local t = invttail(e(df_r), 0.025)
-display 1/ (`b' - (`t' * `se'))
-display 1/ (`b' + (`t' * `se')) */
-
 //Longitudinal PV1
 use "both_datasets_long", clear
 keep if sampletype==2 & visit>1
@@ -371,7 +300,7 @@ display 1/ _b[follow_up_months]
 display 1/  -.1531295
 display 1/  .0642316
 
-//pos baseline
+//neg baseline
 use "both_datasets_long", clear
 keep if sampletype==2 & visit>1
 keep if high_neut_baseline_pv3==0
@@ -385,6 +314,24 @@ display 1/ _b[follow_up_months]
 display 1/  -.2785531 
 display 1/  .1920396
 
+*Censored regression version 2 - censor all observations at the assay floor:
+use "both_datasets_long", clear
+keep if sampletype==2 & visit>1
+recode logPV1_stool 1=., gen(logPV1_stool_cen)
+recode logPV3_stool 1=., gen(logPV3_stool_cen)
+sort pid visit
+list visit logPV1_stool logPV1_stool_cen logPV3_stool logPV3_stool_cen in 1/50, sepby(pid)
+
+
+mixed logPV1_stool_cen c.follow_up_months age_opv14_weeks || pid:
+display -1/ _b[follow_up_months]
+display -1/   -.48013
+display -1/  -.1101846
+
+mixed logPV3_stool_cen c.follow_up_months age_opv14_weeks || pid:
+display -1/ _b[follow_up_months]
+display -1/   -.7471133 
+display -1/  -.4079077
 
 //////////////////////////////////////////////////////////////
 **# Supplement 5 - Correlations
