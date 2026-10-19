@@ -8,7 +8,7 @@ clear
 set more off
 
 //////////////////////////////////////////////////////////////
-**# Supplement 1 - FLow diagram for longitudinal cohort
+**# Supplement fig 1 - FLow diagram for longitudinal cohort
 use "Both_datasets_long", clear
 tab visit
 keep if visit==1
@@ -33,8 +33,8 @@ tab pv1_stool_positive if visit==3, m
 tab pv1_stool_positive if visit==4, m
 
 //////////////////////////////////////////////////////////////
-**# Supplement 2 & 4 
-*Supplement 2 - Stool: Medians and IQRs for each outcome: Longitudinal cohort
+**# Supplement 4 & 5 
+*Supplement 4 - Stool: Medians and IQRs for each outcome: Longitudinal cohort
 use "Both_datasets_long", clear
 keep if sampletype==2
 	rename logPV1_stool logPV1_neut_stool
@@ -63,7 +63,7 @@ testparm i.visit
 quietly mixed logPV3_IgA_stool i.visit || pid:
 testparm i.visit
 
-* Supplement 4 - Serum: Medians and IQRs for each outcome: Longitudinal cohort
+* Supplement 5 - Serum: Medians and IQRs for each outcome: Longitudinal cohort
 use "Both_datasets_long", clear
 keep if sampletype==2
 	rename logPV1_stool logPV1_neut_stool
@@ -92,7 +92,7 @@ testparm i.visit
 quietly mixed logPV3_IgG_serum i.visit || pid:
 testparm i.visit
 
-*Supplement 2 & 4: Cross-sectional cohort
+*Supplement 4 & 5: Cross-sectional cohort
 use "Both_datasets_long", clear
 keep if sampletype==1 
 summarize logPV1_stool, detail
@@ -172,23 +172,6 @@ testparm i.visit
 
 *For both cohorts: comparison of PV1 and PV3 across time-points: p-values
 use "Both_datasets_long", clear
-/*gen difference = logPV3_stool - logPV1_stool
-histogram difference, normal 
-qnorm difference
-
-mcc pv1_stool_positive pv3_stool_positive
-signrank logPV1_stool = logPV3_stool
-signrank logPV1_IgA_stool = logPV3_IgA_stool
-signrank logPV1_serum = logPV3_serum
-
-table, statistic(median logPV1_IgA_serum) statistic(q1 logPV1_IgA_serum) statistic(q3 logPV1_IgA_serum) statistic(median logPV3_IgA_serum) statistic(q1 logPV3_IgA_serum) statistic(q3 logPV3_IgA_serum)
-signrank logPV1_IgA_serum = logPV3_IgA_serum
-
-table, statistic(median logPV1_IgG_serum) statistic(q1 logPV1_IgG_serum) statistic(q3 logPV1_IgG_serum) statistic(median logPV3_IgG_serum) statistic(q1 logPV3_IgG_serum) statistic(q3 logPV3_IgG_serum)
-signrank logPV1_IgG_serum = logPV3_IgG_serum
-
-*/
-use "Both_datasets_long", clear
 gen difference_stool_neut = logPV1_stool - logPV3_stool
 mixed difference_stool_neut || pid:
 gen difference_stool_IgA = logPV1_IgA_stool - logPV3_IgA_stool
@@ -202,30 +185,8 @@ mixed difference_serum_IgG || pid:
 *For difference in PV1 vs PV3 stool neutralisation: see R code script using the Obuchowski method
 
 
-
-/*Average outcomes across the two cohorts - not currently reported
-use "Both_datasets_long_ee", clear
- keep if sampletype == 1
-
-postfile handle str30 variable str20 visit_group N median ci_low ci_high using results_temp.dta, replace
-
-local vars logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV1_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV3_IgA_stool logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV1_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV3_IgA_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV1_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum logPV3_IgG_serum 
-local visit 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8 2 3 4 5 6 7 8
-forvalues x=1/42 {
-	local vars2: word `x' of `vars'
-	local visit2: word `x' of `visit'
-summarize `vars2' if visit==`visit2', detail
-post handle ("`vars2'") ("`visit2'") (r(N)) (r(p50)) (r(p25)) (r(p75))
-}
-postclose handle
-use results_temp.dta, clear
-export excel using "supplementarytab3.xlsx", sheet("Sheet 1") replace
-
-use "Both_datasets_long_ee", clear
-*/
-
 //////////////////////////////////////////////////////////////
-**# Supplement 3 - Half-lives
+**# Supplement 2 - Half-lives
 *Linear regression for PV1 between 1 month and 6 months
 //Longitudinal PV1
 use "both_datasets_long", clear
@@ -314,7 +275,7 @@ display 1/ _b[follow_up_months]
 display 1/  -.2785531 
 display 1/  .1920396
 
-*Censored regression version 2 - censor all observations at the assay floor:
+*Censored regression - censor all observations at the assay floor:
 use "both_datasets_long", clear
 keep if sampletype==2 & visit>1
 recode logPV1_stool 1=., gen(logPV1_stool_cen)
@@ -334,7 +295,7 @@ display -1/   -.7471133
 display -1/  -.4079077
 
 //////////////////////////////////////////////////////////////
-**# Supplement 5 - Correlations
+**# Supplement fig 2 - Correlations
 use "Stool_total_IgA_merge", clear
 *using month 1 for longitudinal:
 keep if sampletype==1 | visit==2
@@ -356,17 +317,33 @@ ktau logPV3_serum logPV3_IgG_serum
 ktau logPV1_IgA_serum logPV1_IgG_serum
 ktau logPV3_IgA_serum logPV3_IgG_serum
 //////////////////////////////////////////////////////////////
-**# Supplement 6 - Comparing full longitudinal cohort to those with complete data
-*Supplementarty table 6.1: Compare demographics for those with complete data vs full-sample
+**# Supplement table 1 - Comparing full longitudinal cohort to those with complete data
+*Comparison of those with complete data to those with misisng data in the longitudinal cohort:
 use "Both_datasets_long", clear
-keep if no_obs==4 & visit==1
-tab1  femalesex complete_edu_adult delay_bopv0 birthweight infant_feeding_type stunting wasting underweight overweight general_symp gastrointes_symp hiv_exposure coinfect_parasite coinfect_caa coinfect_giardia coinfect_enteroinvasive coinfect_otherbacteria coinfect_virus EE_bin
-summ ageweek age_mother_at_birth minutes_towatersource total_deprivation_score age_opv14_weeks weeks_since_rota10 concentration_NPO concentration_MPO concentration_AAT, d
-summ caa_concentration if coinfect_caa==1, d
-use "Both_datasets_long", clear
+keep if visit==1
+recode no_obs 1/3=1 4=0, gen(incomplete_fu)
+tab incomplete_fu femalesex, row chi
+tab incomplete_fu complete_edu, row chi
+tab incomplete_fu delay_bopv0, row chi
+recode birthweight 0/2.4=1 2.5/5=0, gen(lbw)
+tab incomplete_fu lbw, row chi
+tab incomplete_fu infant_feeding_type, row chi
+tab incomplete_fu stunting, row chi
+tab incomplete_fu hiv_ex, row chi
+tab incomplete_fu any_infection, row chi
+tab incomplete_fu EE_bin, row chi
+tabstat age_mother_at_birth total_deprivation_score age_opv14_weeks, by(incomplete_fu)  statistics(p25, p50, p75, N)
+ttest age_mother_at_birth, by(incomplete_fu)
+ttest total_deprivation_score, by(incomplete_fu)
+ttest age_opv14_weeks, by(incomplete_fu)
+tabstat logPV1_stool logPV3_stool logPV1_serum logPV3_serum, by(incomplete_fu)  statistics(p25, p50, p75, N)
+ttest logPV1_stool, by(incomplete_fu)
+ttest logPV3_stool, by(incomplete_fu)
+ttest logPV1_serum, by(incomplete_fu)
+ttest logPV3_serum, by(incomplete_fu)
 
 //////////////////////////////////////////////////////////////
-**# Supplement 7 - Forrest plot using detectable
+**# Supplement figure 4 - Forrest plot using detectable
 *Detectable for sensitivity analysis
 use "Both_datasets_long", clear
 keep if sampletype==2
@@ -426,7 +403,7 @@ list in 1
 save "Forest_plot_detect_ee", replace
 
 //////////////////////////////////////////////////////////////
-**# Supplement 8 - Type 2 box plots
+**# Supplement figure 5 - Type 2 box plots
 
 use "Both_datasets_long", clear
 summ infant_dob, d
