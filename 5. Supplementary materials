@@ -540,3 +540,84 @@ tab visit pv2_bin, row
 //Serum PV2 at month 1
 tabstat logPV2_serum if visit==2, statistics(median p25 p75) by(sampletype)
 
+************************************************************************************
+*Supplementary table 6 (accopanies figure 3)
+use "Both_datasets_long", clear
+keep if sampletype==2
+bysort high_neut_baseline_pv1: tab pv1_stool_positive visit, col chi
+bysort high_neut_baseline_pv1: logistic pv1_stool_positive visit, or
+bysort high_neut_baseline_pv3: tab pv3_stool_positive visit, col chi
+bysort high_neut_baseline_pv3: logistic pv3_stool_positive visit, or
+
+
+bysort high_neut_baseline_pv1: tabstat logPV1_stool, statistics(median p25 p75 n) by(visit)
+bysort high_neut_baseline_pv1: ttest logPV1_stool, by(visit)
+bysort high_neut_baseline_pv3: tabstat logPV3_stool, statistics(median p25 p75 n) by(visit)
+
+bysort high_neut_baseline_pv1: tabstat logPV1_IgA_stool, statistics(median p25 p75 n) by(visit)
+bysort high_neut_baseline_pv3: tabstat logPV3_IgA_stool, statistics(median p25 p75 n) by(visit)
+
+bysort high_neut_baseline_pv1: tabstat logPV1_serum, statistics(median p25 p75 n) by(visit)
+bysort high_neut_baseline_pv3: tabstat logPV3_serum, statistics(median p25 p75 n) by(visit)
+
+bysort high_neut_baseline_pv1: tabstat logPV1_IgA_serum, statistics(median p25 p75 n) by(visit)
+bysort high_neut_baseline_pv3: tabstat logPV3_IgA_serum, statistics(median p25 p75 n) by(visit)
+
+bysort high_neut_baseline_pv1: tabstat logPV1_IgG_serum, statistics(median p25 p75 n) by(visit)
+bysort high_neut_baseline_pv3: tabstat logPV3_IgG_serum, statistics(median p25 p75 n) by(visit)
+
+
+*Comparing homologous stool and serum neutralisation titres between high and low baseline titre groups in longutudinal cohort - "Participants may have negative baseline stool titers because they had not responded to any of the three previous bOPV doses, or because they experienced a short-duration response which was no longer detectable." Can serum titers indicate whether they had been infected previously?
+use "both_datasets_long", clear
+keep if sampletype==2
+
+ttest logPV1_stool if visit==1, by(high_neut_baseline_pv1) 
+ttest logPV1_stool if visit==2, by(high_neut_baseline_pv1) 
+ttest logPV1_stool if visit==3, by(high_neut_baseline_pv1) 
+ttest logPV1_stool if visit==4, by(high_neut_baseline_pv1) 
+
+ttest logPV3_stool if visit==1, by(high_neut_baseline_pv3) 
+ttest logPV3_stool if visit==2, by(high_neut_baseline_pv3) 
+ttest logPV3_stool if visit==3, by(high_neut_baseline_pv3) 
+ttest logPV3_stool if visit==4, by(high_neut_baseline_pv3) 
+
+
+ttest logPV1_serum if visit==1, by(high_neut_baseline_pv1) 
+ttest logPV1_serum if visit==2, by(high_neut_baseline_pv1) 
+ttest logPV1_serum if visit==3, by(high_neut_baseline_pv1) 
+ttest logPV1_serum if visit==4, by(high_neut_baseline_pv1) 
+
+ttest logPV3_serum if visit==1, by(high_neut_baseline_pv3) 
+ttest logPV3_serum if visit==2, by(high_neut_baseline_pv3) 
+ttest logPV3_serum if visit==3, by(high_neut_baseline_pv3) 
+ttest logPV3_serum if visit==4, by(high_neut_baseline_pv3) 
+
+*Comparing over time:
+use "both_datasets_long", clear
+keep if sampletype==2 & high_neut_baseline_pv1==1
+quietly mixed logPV1_stool i.visit || pid:
+testparm i.visit
+quietly mixed logPV1_serum i.visit || pid:
+testparm i.visit
+
+use "both_datasets_long", clear
+keep if sampletype==2 & high_neut_baseline_pv1==0
+quietly mixed logPV1_stool i.visit || pid:
+testparm i.visit
+quietly mixed logPV1_serum i.visit || pid:
+testparm i.visit
+
+
+use "both_datasets_long", clear
+keep if sampletype==2 & high_neut_baseline_pv3==1
+quietly mixed logPV3_stool i.visit || pid:
+testparm i.visit
+quietly mixed logPV3_serum i.visit || pid:
+testparm i.visit
+
+use "both_datasets_long", clear
+keep if sampletype==2 & high_neut_baseline_pv3==0
+quietly mixed logPV3_stool i.visit || pid:
+testparm i.visit
+quietly mixed logPV3_serum i.visit || pid:
+testparm i.visit
